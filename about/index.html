@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+  TRAILING-SLASH GUARD — must stay the first thing in <head>.
+  This page is a folder index, so it can be served at BOTH "/properties/" and
+  "/properties". Without the trailing slash the browser resolves every relative
+  path against the PARENT directory, and the stylesheet and scripts 404 — the
+  same failure the master plan already documents for "/admin". Most static
+  hosts 301 the slash on for you; not all local dev servers do. Declaring an
+  explicit <base> removes the dependency on that behaviour entirely.
+  Skipped for URLs that already end in "/" or in a file extension (so file://
+  and "…/index.html" are untouched).
+-->
+<script>
+(function () {
+  var p = window.location.pathname;
+  if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) {
+    var b = document.createElement("base");
+    b.href = window.location.origin + p + "/";
+    document.head.appendChild(b);
+  }
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Realtor Shamraiz | Luxury Property, Bahria Town Rawalpindi &amp; DHA Islamabad</title>
+<meta name="description" content="Realtor Shamraiz deals in luxury designer properties across Bahria Town Rawalpindi and DHA Islamabad, with transparent dealings and properly documented transactions.">
+<!-- TODO: canonical + og:url need the live domain ([CONTENT REQUIRED] in js/config.js). Do not deploy without them. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="About Realtor Shamraiz | Luxury Property, Bahria Town Rawalpindi &amp; DHA Islamabad">
+<meta property="og:description" content="Realtor Shamraiz deals in luxury designer properties across Bahria Town Rawalpindi and DHA Islamabad, with transparent dealings and properly documented transactions.">
+<meta property="og:image" content="../assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet. See js/theme.js. -->
+<script src="../js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div data-partial="header"></div>
+<main id="main">
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">About</p>
+      <h1>Two areas. Known properly.</h1>
+      <p class="lede">Realtor Shamraiz deals in luxury designer properties across Bahria Town Rawalpindi
+        and DHA Islamabad &mdash; breathtaking architecture, elegant design and superior quality
+        finishes &mdash; with complete transparency and properly documented transactions.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <div class="split">
+        <div class="split-media" data-reveal>
+          <!-- A stock photo of a stranger is never used as a real agent's portrait.
+               Placeholder stands until a genuine photograph is supplied. -->
+          <img src="../assets/images/agent/agent-placeholder.svg" alt="Realtor Shamraiz" loading="lazy" width="600" height="700">
+          <div class="split-media-badge">
+            <div><strong>Bahria Town Rawalpindi</strong><span>Service area</span></div>
+            <div><strong>DHA Islamabad</strong><span>Service area</span></div>
+          </div>
+        </div>
+        <div data-reveal>
+          <p class="eyebrow">The agent</p>
+          <h2>Who you are dealing with</h2>
+          <p class="lede text-muted mt-4"><span class="badge-required">[CONTENT REQUIRED]</span>
+            The agent&rsquo;s real, verified background goes here. Nothing has been written on their
+            behalf &mdash; full display name, professional title, brokerage and licence number are all
+            still to be supplied.</p>
+          <div class="credential-list">
+            <div class="credential-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <div><strong>Focused local coverage</strong><p>Bahria Town Rawalpindi and DHA Islamabad, rather than a map of the whole city.</p></div>
+            </div>
+            <div class="credential-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-3.5 7-10V5l-7-3-7 3v7c0 6.5 7 10 7 10z"/></svg>
+              <div><strong>Properly documented transactions</strong><p>Documentation is verified and explained before you commit, not after.</p></div>
+            </div>
+            <div class="credential-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              <div><strong>Exclusive options</strong><p>Not everything worth seeing is listed publicly. Ask, and exclusive options can be shared privately.</p></div>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">Request a Call</a>
+            <a class="btn btn-outline" href="/contact">Contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight" style="background:var(--color-bg-alt)">
+    <div class="container">
+      <div class="section-head center"><p class="eyebrow">Services</p><h2>What Realtor Shamraiz does</h2></div>
+      <div class="value-grid">
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M10 21v-6h4v6"/></svg></div>
+          <h3>Buying</h3><p>Designer-grade homes across both service areas, with site visits arranged for the properties that actually fit the brief.</p>
+          <a class="btn-link mt-4" href="/buy">Buying <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></div>
+          <h3>Selling &amp; letting</h3><p>Send the property details and get a view on where it currently sits in the Bahria Town Rawalpindi and DHA Islamabad market.</p>
+          <a class="btn-link mt-4" href="/sell">Selling <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-3z"/><path d="M4 12V6a2 2 0 0 1 3.5-1.3L9 6"/></svg></div>
+          <h3>Renting</h3><p>For tenants after a well-finished home, and for landlords who want the tenancy documented properly from the start.</p>
+          <a class="btn-link mt-4" href="/rent">Renting <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+          <h3>Consultation</h3><p>One call sets the brief: area, budget, timeline, and what the property has to do for you.</p>
+          <a class="btn-link mt-4" href="/contact">Get in touch <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <div class="cta-band">
+        <div><h3>Start with a conversation</h3>
+          <p>Whether you are buying, selling, letting or investing in Bahria Town Rawalpindi or DHA Islamabad.</p></div>
+        <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">Call <span data-config="phone"></span></a>
+      </div>
+    </div>
+  </section>
+</main>
+<div data-partial="footer"></div>
+<div data-partial="widgets"></div>
+
+<script src="../js/config.js"></script>
+<script src="../js/partials.js"></script>
+<script src="../js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="../js/admin-bridge.js"></script>
+<script src="../js/listings.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/forms.js"></script>
+<script src="../js/ai-concierge.js"></script>
+</body>
+</html>

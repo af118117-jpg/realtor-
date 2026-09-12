@@ -1,0 +1,1189 @@
+/* =========================================================
+   REALTOR SHAMRAIZ — Design System & Site Styles
+   Palette: deep charcoal/navy base, warm brushed-gold accent,
+   ivory/cream text. Serif display type + clean grotesk body.
+   ========================================================= */
+
+:root {
+  /* Color */
+  --color-bg: #0b0e13;
+  --color-bg-alt: #10151c;
+  --color-surface: #161c25;
+  --color-surface-raised: #1c232e;
+  --color-border: rgba(201, 162, 75, 0.18);
+  --color-border-soft: rgba(255, 255, 255, 0.08);
+  --color-ivory: #f3efe6;
+  --color-ivory-dim: #c7c2b8;
+  --color-muted: #8b93a1;
+  --color-gold: #c9a24b;
+  --color-gold-bright: #e3c375;
+  --color-gold-dim: #8a7539;
+  /* Semantic state colours. Each is contrast-verified against --color-bg in
+     docs/DESIGN_SYSTEM.md §2.2 and always paired with an icon + text label,
+     never used as the sole carrier of meaning. */
+  --color-success: #6fae7a;
+  --color-warning: #e39c5a;
+  --color-error: #e07c68;
+  /* Text that sits ON a gold fill (primary button, active chip, search tab). */
+  --color-on-gold: #17130a;
+
+  /* Type */
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Spacing scale */
+  --space-1: 0.4rem;
+  --space-2: 0.8rem;
+  --space-3: 1.2rem;
+  --space-4: 2rem;
+  --space-5: 3.2rem;
+  --space-6: 5.2rem;
+  --space-7: 8rem;
+
+  /* Layout */
+  --container-max: 1240px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-elev: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 10px 30px -12px rgba(0, 0, 0, 0.45);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --nav-height: 84px;
+
+  /* Theme-dependent surface fills. Split out from the literal rgba() values
+     they replace so a single override block (below) can re-point every
+     input/ghost-button/hover fill at once for the light theme, instead of
+     hunting each declaration site. Dark-theme values match what those call
+     sites used to hard-code, so the default look is unchanged. */
+  --color-input-bg: rgba(255, 255, 255, 0.04);
+  --color-fill-ghost: rgba(255, 255, 255, 0.06);
+  --color-fill-ghost-hover: rgba(255, 255, 255, 0.12);
+  --color-hover-tint: rgba(255, 255, 255, 0.04);
+  --navbar-scrolled-bg: rgba(11, 14, 19, 0.92);
+  --navbar-scrolled-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.6);
+
+  /* ---- Gold as a FILL, not as text ----------------------------------------
+     --color-gold / --color-gold-bright are tuned for gold-as-TEXT. The light
+     theme has to DARKEN those so they clear AA on white — which silently broke
+     every place gold is used as a background behind --color-on-gold text
+     (primary button, active search tab, active filter chip, concierge send
+     button and user bubble, skip link). Dark-on-dark measured 2.92:1 there.
+     These two tokens carry the fill role instead, so each role can move
+     independently per theme. Dark-theme values are byte-identical to the
+     gold-bright/gold pair they replace, so dark rendering is unchanged. */
+  --color-gold-fill: #e3c375;
+  --color-gold-fill-2: #c9a24b;
+
+  /* Search widget panel. Was hard-coded rgba(22,28,37,0.82) — a dark navy
+     panel that never responded to the theme, so in light mode the near-black
+     field text landed on it at 1.71:1 (effectively invisible). Tokenised so
+     the light theme can supply a frosted cream panel instead. */
+  --search-panel-bg: rgba(22, 28, 37, 0.82);
+  --search-panel-border: var(--color-border);
+
+  /* Outline-button border. Was hard-coded rgba(243,239,230,0.35) — an ivory
+     hairline, which over the light theme's cream background measured 1.03:1
+     and left the button with no visible edge at all. */
+  --color-outline-border: rgba(243, 239, 230, 0.35);
+
+  /* Form/search input border, split from --color-border-soft so the light
+     theme can meet the 3:1 non-text minimum without darkening every other
+     soft divider on the page. */
+  --color-input-border: var(--color-border-soft);
+
+  /* ---- Text on surfaces that stay DARK in both themes ---------------------
+     Listing tags, the favourite button, the split-media badge, area-card
+     captions and the lightbox chrome all sit on dark translucent scrims over
+     photography — a deliberate, documented exception that does NOT invert with
+     the theme (see the light-theme block's header comment). Their TEXT was
+     still using theme tokens, so in light mode near-black type landed on those
+     dark scrims: the area-card heading measured 1.02:1, the lightbox chrome
+     1.03:1, the listing tag 1.40:1. These tokens are therefore declared ONCE
+     here and deliberately NOT overridden in the light block — the surface
+     never flips, so neither may the text on it.
+     Worst case assumed throughout is a pure-white photo under the scrim
+     (tag/fav resolve to #484a4e, the split badge to #4f5155); real photography
+     is darker and scores higher. */
+  --color-on-scrim: #f3efe6;                        /* 7.74:1 on tag, 6.93:1 on badge */
+  --color-on-scrim-dim: #cdc8be;                    /* 5.33:1 / 4.77:1 */
+  --color-on-scrim-gold: #e3c375;                   /* 5.21:1 / 4.67:1 */
+  /* Lifted from #e39c5a (3.88:1 worst case) — the sample-listing tag is the
+     loudest badge in the system by design, so it cannot be the one that fails.
+     This is the second of the two places these tokens also fix a pre-existing
+     DARK-theme shortfall: the scrim is the same in both themes, so 3.88:1 was
+     never a light-mode-only problem. */
+  --color-on-scrim-warning: #efb478;                /* 4.85:1 on the tag it is used on */
+  --color-on-scrim-border: rgba(201, 162, 75, 0.18);
+
+  /* Hero photo scrim. Dark theme keeps the original dark wash (strongest
+     bottom-left, where the heading/proof row sit); the light theme overrides
+     this one token below with a light cream wash instead — see that block's
+     comment for why the hero is the one scrim that needs to invert. */
+  /* Strengthened 2026-09-12. Measured against the real hero photograph rather
+     than a flat fallback, the previous stops left small text over the brighter
+     parts of the image below AA in BOTH themes — hero lede 2.99:1, the eyebrow
+     3.71:1, nav links 2.96:1 here in dark; the light theme failed the same
+     elements at different stops. The horizontal pass now holds its strength
+     across the full width of the text column (which runs to ~55%) before
+     releasing, instead of dropping to 0.2 at 55% where the lede still sits.
+     The photo stays clearly visible from ~62% rightward — this is a shaped
+     gradient, not a panel behind the text. */
+  --hero-scrim:
+    linear-gradient(180deg, rgba(8,10,14,0.66) 0%, rgba(8,10,14,0.5) 35%, rgba(8,10,14,0.93) 100%),
+    linear-gradient(90deg, rgba(8,10,14,0.9) 0%, rgba(8,10,14,0.86) 34%, rgba(8,10,14,0.74) 55%, rgba(8,10,14,0.32) 74%, rgba(8,10,14,0) 88%);
+
+  /* Full-width veil under the transparent navbar. The horizontal hero scrim
+     fades out by ~88%, so nav links on the RIGHT (Insights / About / Contact)
+     sat on bare photograph — 2.96:1 dark, 3.24:1 light. This is a separate
+     top-down wash so those links get a consistent backdrop without adding a
+     solid bar over the image. */
+  --navbar-veil: linear-gradient(180deg, rgba(8,10,14,0.92) 0%, rgba(8,10,14,0.74) 55%, rgba(8,10,14,0) 100%);
+}
+
+/* =========================================================
+   Light theme
+   Same brand gold + serif/grotesk pairing, re-based onto a warm
+   ivory/white surface system instead of charcoal/navy. Gold values are
+   deepened where they carry text/icons so they still clear WCAG AA on
+   white; the semantic status colors get the same treatment. Photo
+   scrims (listing tags, lightbox, drawer backdrop) are left as dark
+   translucent overlays in both themes — that's the standard, expected
+   treatment for text-over-photo, not a light/dark concern. The hero
+   scrim is the one exception: a dark wash over a bright photo sits too
+   close in value to the light theme's near-black heading/lede text, so
+   --hero-scrim is overridden below with a light wash instead (see the
+   .hero-media::after rule for why this token exists).
+   ========================================================= */
+html[data-theme="light"] {
+  --color-bg: #faf8f3;
+  --color-bg-alt: #f2ede2;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-border: rgba(154, 116, 41, 0.28);
+  --color-border-soft: rgba(28, 26, 20, 0.1);
+  --color-ivory: #201d17;
+  --color-ivory-dim: #514c40;
+  /* #756e60 measured 4.33:1 against --color-bg-alt, so footer links (which sit
+     on bg-alt) failed AA by a hair. Darkened until the worst surface it lands
+     on clears 4.5 — bg-alt 4.80:1, bg 5.28:1, surface 5.60:1. */
+  --color-muted: #6e6759;
+  /* #96702a measured 3.87:1 on bg-alt, failing for every eyebrow inside an
+     alt-background section. Darkened to clear AA on all three light surfaces:
+     bg-alt 4.70:1, bg 5.17:1, surface 5.49:1. Safe to darken freely now that
+     gold-as-fill lives in its own tokens and no longer rides on this value. */
+  --color-gold: #866324;
+  --color-gold-bright: #7a5a1f;
+  --color-gold-dim: #a87f34;
+  --color-success: #2f7a45;
+  --color-warning: #a35f16;
+  --color-error: #b6402c;
+  --color-on-gold: #17130a;
+
+  --shadow-elev: 0 20px 50px -22px rgba(32, 26, 12, 0.28);
+  --shadow-soft: 0 10px 26px -14px rgba(32, 26, 12, 0.18);
+
+  --color-input-bg: rgba(28, 26, 20, 0.035);
+  --color-fill-ghost: rgba(28, 26, 20, 0.045);
+  --color-fill-ghost-hover: rgba(28, 26, 20, 0.08);
+  --color-hover-tint: rgba(28, 26, 20, 0.035);
+  --navbar-scrolled-bg: rgba(250, 248, 243, 0.92);
+  --navbar-scrolled-shadow: 0 8px 26px -14px rgba(32, 26, 12, 0.18);
+
+  /* Gold-as-fill moves the OPPOSITE way to gold-as-text: text-gold darkens on
+     white, fill-gold has to stay light enough for --color-on-gold (#17130a) to
+     read on top of it. Measured against #17130a: #d4af57 = 8.88:1,
+     #c09344 = 6.61:1 (was 2.92:1 and 4.10:1 with the text tokens). */
+  --color-gold-fill: #d4af57;
+  --color-gold-fill-2: #c09344;
+
+  /* Frosted cream panel rather than a solid box — keeps the existing blur and
+     lets the hero photo read through the edges. Verified against the worst
+     case (a pure-black photo pixel under the strongest part of the light hero
+     scrim, which resolves to #cdcbc7): the panel still lands at #f8f8f7, so
+     field labels measure 4.76:1 and the select text 15.81:1. */
+  --search-panel-bg: rgba(255, 255, 255, 0.86);
+  --search-panel-border: rgba(154, 116, 41, 0.35);
+
+  /* Warm gold-brown hairlines, chosen over neutral grey so the light theme
+     keeps the brand's warmth while clearing the 3:1 non-text minimum
+     (3.02:1 against --color-bg, ~3.1:1 against a white surface). */
+  --color-outline-border: rgba(122, 90, 31, 0.68);
+  --color-input-border: rgba(122, 90, 31, 0.68);
+
+  /* Same cream (--color-bg) used as a translucent wash instead of a dark
+     one, so the near-black heading/lede stay legible without dimming or
+     blurring the photo. Strongest over the text column on the left, fully
+     transparent by ~74% width so the right side of the image stays clear;
+     the vertical pass lightens the lower band for the search widget/proof
+     row the same way the dark-theme version darkens it there. */
+  /* Same strengthening as the dark scrim, same reason — see that block. The
+     light wash has to work harder than the dark one because the near-black
+     heading/lede lose contrast against the photo's BRIGHT areas (sky, lit
+     windows), which is exactly where a light hero photo spends most of its
+     pixels. */
+  --hero-scrim:
+    linear-gradient(180deg, rgba(250,248,243,0.44) 0%, rgba(250,248,243,0.34) 35%, rgba(250,248,243,0.88) 100%),
+    linear-gradient(90deg, rgba(250,248,243,0.94) 0%, rgba(250,248,243,0.88) 34%, rgba(250,248,243,0.7) 55%, rgba(250,248,243,0.28) 74%, rgba(250,248,243,0) 88%);
+
+  --navbar-veil: linear-gradient(180deg, rgba(250,248,243,0.94) 0%, rgba(250,248,243,0.76) 55%, rgba(250,248,243,0) 100%);
+}
+
+/* Below ~900px the heading/lede wrap across the full hero width (there's no
+   "left column" left for a left-to-right fade to track), so the light-theme
+   wash switches to an even, full-width veil at the same tablet/mobile
+   breakpoint the hero-proof/search-widget grids already use. */
+@media (max-width: 900px) {
+  html[data-theme="light"] {
+    --hero-scrim: linear-gradient(180deg, rgba(250,248,243,0.78) 0%, rgba(250,248,243,0.7) 40%, rgba(250,248,243,0.92) 100%);
+  }
+  /* The dark theme needs the same full-width treatment at this breakpoint and
+     never had one — its horizontal pass simply kept fading left-to-right while
+     the text wrapped across the whole width. */
+  :root {
+    --hero-scrim: linear-gradient(180deg, rgba(8,10,14,0.72) 0%, rgba(8,10,14,0.66) 40%, rgba(8,10,14,0.94) 100%);
+  }
+}
+
+/* ---------- Reset ---------- */
+* , *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-height) + 12px); }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ivory);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s var(--ease), color 0.25s var(--ease);
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; margin: 0; padding: 0; }
+button { font: inherit; cursor: pointer; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; color: var(--color-ivory); }
+p { margin: 0; }
+
+/* Visible focus states for keyboard accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-gold-bright);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-gold-fill-2);
+  color: var(--color-on-gold);
+  padding: 0.8rem 1.4rem;
+  z-index: 999;
+  font-weight: 600;
+  border-radius: 0 0 8px 0;
+}
+.skip-link:focus { left: 0; }
+
+.container { max-width: var(--container-max); margin: 0 auto; padding: 0 var(--space-4); }
+@media (max-width: 640px) { .container { padding: 0 var(--space-3); } }
+
+section { padding: var(--space-6) 0; }
+.section-tight { padding: var(--space-5) 0; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+.eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--color-gold); display: inline-block; }
+/* The hero eyebrow is the only one sitting on photography rather than a flat
+   surface, and gold-on-photo is the weakest pairing in the palette: measured
+   against the real hero image it fell to 4.04:1 across the darker tenth of the
+   area (4.74:1 typical). --color-gold-bright moves AWAY from the scrim in both
+   themes — darker in light, brighter in dark — so this single scoped override
+   lifts it on both without touching any other eyebrow or washing the photo. */
+.hero .eyebrow, .hero .eyebrow::before { color: var(--color-gold-bright); }
+.hero .eyebrow::before { background: var(--color-gold-bright); }
+
+.section-head { max-width: 640px; margin-bottom: var(--space-5); }
+.section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+.section-head h2 { font-size: clamp(1.9rem, 3vw, 2.6rem); }
+.section-head p { color: var(--color-ivory-dim); margin-top: var(--space-2); font-size: 1.05rem; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.95rem 1.9rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+  transition: transform 0.25s var(--ease), background 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease);
+  white-space: nowrap;
+}
+.btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.btn-primary { background: linear-gradient(135deg, var(--color-gold-fill), var(--color-gold-fill-2)); color: var(--color-on-gold); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -10px rgba(201, 162, 75, 0.5); }
+.btn-outline { background: transparent; border-color: var(--color-outline-border); color: var(--color-ivory); }
+.btn-outline:hover { border-color: var(--color-gold); color: var(--color-gold-bright); transform: translateY(-2px); }
+.btn-ghost { background: var(--color-fill-ghost); color: var(--color-ivory); }
+.btn-ghost:hover { background: var(--color-fill-ghost-hover); }
+.btn-block { width: 100%; }
+.btn-sm { padding: 0.65rem 1.3rem; font-size: 0.85rem; min-height: 44px; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none; }
+.btn.is-loading { pointer-events: none; opacity: 0.75; }
+.btn.is-loading::before {
+  content: ""; width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid currentColor; border-top-color: transparent;
+  animation: btnSpin 0.7s linear infinite;
+}
+@keyframes btnSpin { to { transform: rotate(360deg); } }
+
+/* Tertiary text action — lowest rung of the hierarchy. */
+.btn-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: none; border: 0; padding: 0;
+  min-height: 44px; font-size: 0.92rem; font-weight: 600; color: var(--color-gold-bright);
+  border-bottom: 1px solid transparent; transition: border-color 0.2s var(--ease);
+}
+.btn-link svg { width: 16px; height: 16px; transition: transform 0.25s var(--ease); }
+.btn-link:hover { border-bottom-color: var(--color-gold); }
+.btn-link:hover svg { transform: translateX(3px); }
+
+/* ---------- Navbar ---------- */
+.navbar {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--nav-height);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  transition: background 0.35s var(--ease), box-shadow 0.35s var(--ease), height 0.35s var(--ease), border-color 0.3s var(--ease);
+}
+/* Top-down veil so nav links stay legible over the hero photograph before the
+   navbar picks up its solid scrolled background. Sits behind the nav content,
+   ignores pointer events, and fades to nothing by the navbar's lower edge so
+   it reads as part of the image, not as a bar. Removed once .is-scrolled
+   supplies a real background. */
+.navbar::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: var(--navbar-veil); pointer-events: none;
+  transition: opacity 0.35s var(--ease);
+}
+.navbar.is-scrolled::before { opacity: 0; }
+.navbar.is-scrolled {
+  background: var(--navbar-scrolled-bg);
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--navbar-scrolled-shadow);
+  height: 72px;
+}
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+
+/* min-height keeps the logo a legal 44px tap target once .brand-name is hidden
+   below 420px, where the link would otherwise shrink to the 38px mark alone. */
+.brand { display: flex; align-items: center; justify-content: center; gap: 0.7rem; min-height: 44px; min-width: 44px; font-family: var(--font-display); font-size: 1.3rem; letter-spacing: 0.02em; flex-shrink: 0; }
+.brand-mark {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1.5px solid var(--color-gold);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-gold); font-size: 1rem; font-weight: 700; flex-shrink: 0;
+}
+.brand-name { white-space: nowrap; }
+
+/* Primary links. Eight flat destinations — no dropdowns, no mega menu (brief §09). */
+.nav-links { display: flex; align-items: center; gap: clamp(0.9rem, 1.5vw, 1.55rem); }
+.nav-links a {
+  font-size: 0.875rem; font-weight: 500; color: var(--color-ivory-dim);
+  position: relative; padding: 0.35rem 0; white-space: nowrap; transition: color 0.2s var(--ease);
+}
+.nav-links a::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 1.5px; width: 0;
+  background: var(--color-gold); transition: width 0.25s var(--ease);
+}
+.nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--color-ivory); }
+.nav-links a[aria-current="page"]::after, .nav-links a:hover::after { width: 100%; }
+
+.nav-actions { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+
+/* Assistant entry point. Quieter than the CTA on purpose — an automated FAQ
+   matcher should not out-shout the option to speak to a person. */
+.nav-assistant {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 44px; padding: 0 0.9rem; border-radius: 999px;
+  border: 1px solid var(--color-border-soft); color: var(--color-ivory-dim);
+  font-size: 0.84rem; font-weight: 500;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+.nav-assistant:hover { border-color: var(--color-gold); color: var(--color-gold-bright); }
+.nav-assistant svg { width: 17px; height: 17px; flex-shrink: 0; }
+.nav-cta-short { display: none; }
+
+.nav-toggle {
+  display: none; background: none; border: 1px solid var(--color-border-soft); color: var(--color-ivory);
+  width: 44px; height: 44px; border-radius: 10px; align-items: center; justify-content: center;
+}
+.nav-toggle svg { width: 22px; height: 22px; }
+
+/* --- Responsive nav.
+   Below 1100px the eight links no longer fit beside the logo and both actions,
+   so they move into the drawer. The header then matches the mobile spec in §09:
+   logo · AI button · CTA · menu. --- */
+@media (max-width: 1100px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: inline-flex; }
+}
+@media (max-width: 720px) {
+  .nav-assistant { padding: 0; width: 44px; }
+  .nav-assistant-label { display: none; }
+  .nav-cta-long { display: none; }
+  .nav-cta-short { display: inline; }
+  .brand { font-size: 1.1rem; }
+}
+@media (max-width: 420px) {
+  .brand-name { display: none; }
+}
+
+.mobile-drawer {
+  position: fixed; inset: 0; z-index: 600; background: rgba(8,10,14,0.6); backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease);
+}
+.mobile-drawer.open { opacity: 1; pointer-events: auto; }
+.mobile-drawer-panel {
+  position: absolute; top: 0; right: 0; height: 100%; width: min(88vw, 380px);
+  background: var(--color-surface); border-left: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  display: flex; flex-direction: column; gap: var(--space-4); overflow-y: auto;
+  transform: translateX(100%); transition: transform 0.35s var(--ease);
+}
+.mobile-drawer.open .mobile-drawer-panel { transform: translateX(0); }
+.mobile-drawer-head { display: flex; align-items: center; justify-content: space-between; min-height: var(--nav-height); }
+.mobile-drawer-close { background: none; border: 1px solid var(--color-border-soft); border-radius: 10px; color: var(--color-ivory); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.mobile-drawer-close svg { width: 20px; height: 20px; }
+.mobile-drawer nav { display: flex; flex-direction: column; }
+.mobile-drawer nav a {
+  font-size: 1.15rem; font-family: var(--font-display); color: var(--color-ivory);
+  padding: 0.75rem 0; border-bottom: 1px solid var(--color-border-soft);
+}
+.mobile-drawer nav a:hover { color: var(--color-gold-bright); }
+.mobile-drawer-foot { display: grid; gap: var(--space-2); margin-top: auto; padding-top: var(--space-3); }
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative; min-height: 100svh; display: flex; align-items: center;
+  overflow: hidden; padding-top: var(--nav-height);
+}
+.hero-media { position: absolute; inset: 0; z-index: 0; }
+.hero-media img { width: 100%; height: 100%; object-fit: cover; }
+.hero-media video {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 0.6s var(--ease);
+}
+.hero-media video.is-active { opacity: 1; }
+.hero-media::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--hero-scrim);
+}
+/* `padding-block`, not the `padding: X 0` shorthand this used to carry. This
+   element is BOTH .container and .hero-content, and the shorthand's implicit
+   `0` for the inline axis overrode .container's own horizontal padding (equal
+   specificity, later in the file). Above 1240px the max-width kept the text
+   off the edge so nothing looked wrong, but at every narrower viewport the
+   hero heading, lede and CTAs ran flush to the screen edge — clearly visible
+   at 390px. Setting only the block axis leaves .container's gutter intact. */
+.hero-content { position: relative; z-index: 1; padding-block: var(--space-6); }
+.hero-content h1 { font-size: clamp(2.6rem, 5.4vw, 4.6rem); max-width: 780px; }
+.hero-content h1 em { font-style: italic; color: var(--color-gold-bright); }
+.hero-content .lede { max-width: 560px; margin-top: var(--space-3); font-size: 1.15rem; color: var(--color-ivory-dim); }
+.hero-actions { display: flex; gap: var(--space-3); margin-top: var(--space-4); flex-wrap: wrap; align-items: center; }
+
+/* Proof row. Replaces the old numeric "stats" strip — see docs/COPY_DECK.md §3.1.
+   Values are short verified phrases, so they are set in the display face at a
+   restrained size rather than as oversized figures. */
+.hero-proof {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-4); margin-top: var(--space-5);
+  padding-top: var(--space-4); border-top: 1px solid var(--color-border);
+  max-width: 920px;
+}
+.hero-proof li { min-width: 0; }
+.hero-proof strong {
+  display: block; font-family: var(--font-display); font-size: 1.05rem;
+  color: var(--color-ivory); line-height: 1.3;
+}
+.hero-proof span {
+  display: block; margin-top: 0.3rem; font-size: 0.72rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--color-muted);
+}
+@media (max-width: 900px) { .hero-proof { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .hero-proof { grid-template-columns: 1fr; gap: var(--space-3); } }
+
+/* Search widget */
+.search-widget {
+  margin-top: var(--space-5);
+  background: var(--search-panel-bg);
+  border: 1px solid var(--search-panel-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-elev);
+  max-width: 920px;
+}
+.search-tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); flex-wrap: wrap; }
+.search-tab {
+  background: none; border: 1px solid transparent; color: var(--color-muted);
+  padding: 0.5rem 1.1rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+}
+.search-tab.active { background: var(--color-gold-fill-2); color: var(--color-on-gold); }
+.search-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+.search-field { display: flex; flex-direction: column; gap: 0.35rem; }
+.search-field label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-muted); }
+.search-field select, .search-field input {
+  background: var(--color-input-bg); border: 1px solid var(--color-input-border); color: var(--color-ivory);
+  border-radius: var(--radius-sm); padding: 0.7rem 0.8rem; font-size: 0.92rem; width: 100%;
+}
+.search-submit { display: flex; align-items: flex-end; }
+@media (max-width: 900px) { .search-fields { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .search-fields { grid-template-columns: 1fr; } }
+
+.scroll-cue {
+  position: absolute; bottom: var(--space-4); left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem; color: var(--color-muted);
+  font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; z-index: 1;
+}
+.scroll-cue .line { width: 1px; height: 34px; background: linear-gradient(var(--color-gold), transparent); animation: scrollPulse 2.2s var(--ease) infinite; }
+@keyframes scrollPulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+/* ---------- Cards: Listings ---------- */
+.filter-bar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
+.filter-chip {
+  background: var(--color-surface); border: 1px solid var(--color-border-soft); color: var(--color-ivory-dim);
+  padding: 0.6rem 1.3rem; border-radius: 999px; font-size: 0.88rem; font-weight: 500;
+  transition: all 0.25s var(--ease);
+}
+.filter-chip:hover { border-color: var(--color-gold); color: var(--color-ivory); }
+.filter-chip.active { background: var(--color-gold-fill-2); color: var(--color-on-gold); border-color: var(--color-gold-fill-2); }
+
+.listing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+@media (max-width: 980px) { .listing-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .listing-grid { grid-template-columns: 1fr; } }
+
+.listing-card {
+  background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-md);
+  overflow: hidden; transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), border-color 0.35s var(--ease), background-color 0.3s var(--ease);
+  display: flex; flex-direction: column;
+}
+.listing-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-soft); border-color: var(--color-border); }
+.listing-media { position: relative; aspect-ratio: 4/3; overflow: hidden; }
+.listing-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
+.listing-card:hover .listing-media img { transform: scale(1.06); }
+.listing-tag {
+  position: absolute; top: 14px; left: 14px; background: rgba(11,14,19,0.75); backdrop-filter: blur(6px);
+  color: var(--color-on-scrim-gold); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.35rem 0.8rem; border-radius: 999px; font-weight: 600; border: 1px solid var(--color-on-scrim-border);
+  /* Bounded so a long label ("Sample listing · Commercial Plot") wraps inside
+     the card instead of overflowing it and colliding with .listing-fav, which
+     occupies the top-right 38px + its 14px gutter. */
+  max-width: calc(100% - 70px); line-height: 1.35; text-wrap: balance;
+}
+.listing-tag.demo { color: var(--color-on-scrim-warning); border-color: rgba(227,156,90,0.4); }
+.listing-fav {
+  position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(11,14,19,0.75); border: 1px solid var(--color-on-scrim-border); color: var(--color-on-scrim);
+  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(6px);
+}
+.listing-fav svg { width: 18px; height: 18px; }
+.listing-fav.is-saved { color: var(--color-on-scrim-gold); }
+.listing-fav.is-saved svg { fill: var(--color-on-scrim-gold); }
+
+.listing-body { padding: var(--space-3) var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+.listing-price { font-family: var(--font-display); font-size: 1.5rem; color: var(--color-gold-bright); }
+.listing-price span { font-size: 0.8rem; color: var(--color-muted); font-family: var(--font-body); }
+.listing-title { font-size: 1.05rem; font-weight: 600; }
+.listing-loc { font-size: 0.88rem; color: var(--color-muted); display: flex; align-items: center; gap: 0.4rem; }
+.listing-loc svg { width: 15px; height: 15px; color: var(--color-gold); flex-shrink: 0; }
+.listing-meta { display: flex; gap: var(--space-3); margin-top: auto; padding-top: var(--space-2); border-top: 1px solid var(--color-border-soft); font-size: 0.85rem; color: var(--color-ivory-dim); flex-wrap: wrap; }
+.listing-meta span { display: flex; align-items: center; gap: 0.35rem; }
+.listing-meta svg { width: 16px; height: 16px; color: var(--color-gold); }
+.listing-cta { display: flex; gap: 0.6rem; margin-top: var(--space-2); flex-wrap: wrap; }
+/* flex-basis, not flex:1 — the buttons keep equal width while they fit and drop
+   to their own rows when they do not, instead of overflowing the card. */
+.listing-cta .btn { flex: 1 1 128px; }
+.listing-cta .btn-sm { padding-inline: 1rem; }
+
+.empty-state { text-align: center; padding: var(--space-6) var(--space-3); color: var(--color-muted); }
+.empty-state svg { width: 56px; height: 56px; margin: 0 auto var(--space-3); color: var(--color-gold-dim); }
+
+.view-more-wrap { text-align: center; margin-top: var(--space-5); }
+
+/* ---------- About / Split sections ---------- */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); align-items: center; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; gap: var(--space-5); } }
+.split-media { position: relative; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-elev); }
+.split-media img { aspect-ratio: 4/5; object-fit: cover; }
+.split-media-badge {
+  position: absolute; bottom: var(--space-3); left: var(--space-3); right: var(--space-3);
+  background: rgba(11,14,19,0.72); backdrop-filter: blur(10px); border: 1px solid var(--color-on-scrim-border);
+  border-radius: var(--radius-md); padding: var(--space-3); display: flex; gap: var(--space-3);
+}
+.split-media-badge strong { display: block; font-family: var(--font-display); color: var(--color-on-scrim-gold); font-size: 1.3rem; }
+/* Was --color-muted, which measured 2.57:1 here in DARK mode too — this is one
+   of two places the scrim tokens also fix a pre-existing dark-theme failure. */
+.split-media-badge span { font-size: 0.78rem; color: var(--color-on-scrim-dim); }
+
+.credential-list { display: grid; gap: var(--space-2); margin-top: var(--space-4); }
+.credential-item { display: flex; gap: 0.8rem; align-items: flex-start; }
+.credential-item svg { width: 22px; height: 22px; color: var(--color-gold); flex-shrink: 0; margin-top: 2px; }
+.credential-item strong { display: block; font-size: 0.98rem; }
+.credential-item p { color: var(--color-muted); font-size: 0.9rem; margin-top: 0.15rem; }
+
+/* ---------- Why Choose Us ---------- */
+.value-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+@media (max-width: 980px) { .value-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .value-grid { grid-template-columns: 1fr; } }
+.value-card {
+  background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-md);
+  padding: var(--space-4); transition: border-color 0.3s var(--ease), transform 0.3s var(--ease), background-color 0.3s var(--ease);
+}
+.value-card:hover { border-color: var(--color-gold); transform: translateY(-4px); }
+.value-icon {
+  width: 52px; height: 52px; border-radius: 50%; background: rgba(201,162,75,0.1); border: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center; color: var(--color-gold); margin-bottom: var(--space-3);
+}
+.value-icon svg { width: 24px; height: 24px; }
+.value-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+.value-card p { color: var(--color-muted); font-size: 0.92rem; }
+
+/* ---------- Process steps ---------- */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); position: relative; }
+@media (max-width: 980px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+.step { position: relative; padding-top: var(--space-4); }
+.step-num {
+  font-family: var(--font-display); font-size: 2.2rem; color: var(--color-gold); opacity: 0.5; display: block; margin-bottom: 0.6rem;
+}
+.step h3 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+.step p { color: var(--color-muted); font-size: 0.9rem; }
+
+/* ---------- Neighborhoods ---------- */
+.area-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+@media (max-width: 980px) { .area-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .area-grid { grid-template-columns: 1fr; } }
+.area-card { position: relative; border-radius: var(--radius-md); overflow: hidden; aspect-ratio: 3/4; }
+.area-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s var(--ease); }
+.area-card:hover img { transform: scale(1.08); }
+.area-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(6,8,11,0.92) 100%); }
+.area-card-body { position: absolute; left: 0; right: 0; bottom: 0; padding: var(--space-3); z-index: 1; }
+.area-card-body h3 { font-size: 1.15rem; color: var(--color-on-scrim); }
+.area-card-body p { font-size: 0.82rem; color: var(--color-on-scrim-dim); margin-top: 0.4rem; opacity: 0; max-height: 0; overflow: hidden; transition: all 0.3s var(--ease); }
+.area-card:hover .area-card-body p { opacity: 1; max-height: 100px; }
+
+/* ---------- Testimonials ---------- */
+.testimonial-carousel { position: relative; max-width: 760px; margin: 0 auto; }
+.testimonial-track { overflow: hidden; }
+.testimonial-slides { display: flex; transition: transform 0.5s var(--ease); }
+.testimonial-slide { flex: 0 0 100%; padding: 0 var(--space-2); }
+.testimonial-card {
+  background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg);
+  padding: var(--space-5); text-align: center; transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.testimonial-quote { font-family: var(--font-display); font-size: 1.3rem; line-height: 1.5; color: var(--color-ivory); }
+.testimonial-stars { color: var(--color-gold); margin-bottom: var(--space-3); letter-spacing: 0.2em; }
+.testimonial-author { margin-top: var(--space-3); font-size: 0.92rem; color: var(--color-muted); }
+.testimonial-author strong { color: var(--color-ivory); display: block; font-size: 1rem; }
+.testimonial-demo-note { text-align: center; font-size: 0.78rem; color: var(--color-muted); margin-top: var(--space-3); }
+.testimonial-nav { display: flex; justify-content: center; gap: var(--space-3); margin-top: var(--space-4); align-items: center; }
+.testimonial-arrow {
+  width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--color-border-soft); background: transparent;
+  color: var(--color-ivory); display: flex; align-items: center; justify-content: center;
+}
+.testimonial-arrow:hover { border-color: var(--color-gold); color: var(--color-gold-bright); }
+.testimonial-dots { display: flex; gap: 0.5rem; }
+.testimonial-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-border-soft); border: none; padding: 0; }
+.testimonial-dot.active { background: var(--color-gold); width: 22px; border-radius: 4px; }
+
+/* ---------- Offers / Lead capture band ---------- */
+.cta-band {
+  background: linear-gradient(135deg, var(--color-surface-raised), var(--color-bg-alt));
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap;
+}
+.cta-band h3 { font-size: 1.6rem; max-width: 480px; }
+.cta-band p { color: var(--color-muted); margin-top: 0.5rem; max-width: 460px; }
+
+.final-cta { text-align: center; position: relative; overflow: hidden; }
+.final-cta h2 { font-size: clamp(2rem, 4vw, 3rem); max-width: 700px; margin: 0 auto; }
+.final-cta p { color: var(--color-ivory-dim); max-width: 560px; margin: var(--space-3) auto 0; }
+.final-cta .hero-actions { justify-content: center; }
+
+/* ---------- Forms ---------- */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+.form-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-field.full { grid-column: 1 / -1; }
+.form-field label { font-size: 0.82rem; color: var(--color-ivory-dim); font-weight: 500; }
+.form-field .required { color: var(--color-gold-bright); }
+.form-field input, .form-field select, .form-field textarea {
+  background: var(--color-input-bg); border: 1px solid var(--color-input-border); color: var(--color-ivory);
+  border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-size: 0.95rem; font-family: inherit; width: 100%;
+  transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease), color 0.25s var(--ease);
+}
+.form-field textarea { resize: vertical; min-height: 110px; }
+.form-field input:invalid:not(:placeholder-shown) { border-color: var(--color-error); }
+.form-note { font-size: 0.78rem; color: var(--color-muted); margin-top: var(--space-2); }
+.form-error { color: var(--color-error); font-size: 0.85rem; min-height: 1.1em; }
+.form-field.is-error input, .form-field.is-error select, .form-field.is-error textarea { border-color: var(--color-error); }
+.form-field.is-success input, .form-field.is-success select { border-color: var(--color-success); }
+.form-field .field-hint { font-size: 0.78rem; color: var(--color-muted); }
+
+/* ---------- Contact / Map ---------- */
+.contact-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-5); align-items: flex-start; }
+@media (max-width: 980px) { .contact-grid { grid-template-columns: 1fr; } }
+.contact-info-card {
+  background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg);
+  padding: var(--space-4); display: grid; gap: var(--space-3); transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.contact-info-row { display: flex; gap: 0.9rem; align-items: flex-start; }
+.contact-info-row svg { width: 22px; height: 22px; color: var(--color-gold); flex-shrink: 0; margin-top: 3px; }
+.contact-info-row strong { display: block; font-size: 0.95rem; }
+.contact-info-row span, .contact-info-row a { color: var(--color-muted); font-size: 0.9rem; }
+.map-frame { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--color-border-soft); aspect-ratio: 16/10; background: var(--color-surface); }
+.map-frame iframe { width: 100%; height: 100%; border: 0; }
+.map-fallback { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-2); color: var(--color-muted); text-align: center; padding: var(--space-4); }
+.map-fallback svg { width: 40px; height: 40px; color: var(--color-gold-dim); }
+
+/* ---------- Footer ---------- */
+footer { background: var(--color-bg-alt); border-top: 1px solid var(--color-border-soft); padding: var(--space-6) 0 var(--space-4); transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease); }
+.footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: var(--space-5); }
+@media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-col h4 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-gold); margin-bottom: var(--space-3); }
+.footer-col ul { display: grid; gap: 0.6rem; }
+.footer-col a, .footer-col span { color: var(--color-muted); font-size: 0.92rem; }
+.footer-col a:hover { color: var(--color-ivory); }
+.footer-brand p { color: var(--color-muted); margin-top: var(--space-2); max-width: 320px; font-size: 0.9rem; }
+.footer-social { display: flex; gap: 0.7rem; margin-top: var(--space-3); }
+.footer-social a { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--color-border-soft); display: flex; align-items: center; justify-content: center; }
+.footer-social a:hover { border-color: var(--color-gold); color: var(--color-gold-bright); }
+.footer-social svg { width: 17px; height: 17px; }
+.footer-bottom { margin-top: var(--space-5); padding-top: var(--space-3); border-top: 1px solid var(--color-border-soft); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); font-size: 0.8rem; color: var(--color-muted); }
+
+/* ---------- Back to top ---------- */
+.back-to-top {
+  position: fixed; bottom: var(--space-4); right: var(--space-4); width: 48px; height: 48px; border-radius: 50%;
+  background: var(--color-surface-raised); border: 1px solid var(--color-border); color: var(--color-gold-bright);
+  display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transform: translateY(10px);
+  transition: all 0.3s var(--ease); z-index: 400; box-shadow: var(--shadow-soft);
+}
+.back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.back-to-top svg { width: 20px; height: 20px; }
+
+/* ---------- Toast ---------- */
+.toast-stack { position: fixed; top: calc(var(--nav-height) + 16px); right: var(--space-4); z-index: 900; display: flex; flex-direction: column; gap: 0.6rem; }
+.toast {
+  background: var(--color-surface-raised); border: 1px solid var(--color-border); color: var(--color-ivory);
+  padding: 0.9rem 1.2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-soft);
+  display: flex; align-items: center; gap: 0.7rem; font-size: 0.9rem; min-width: 240px;
+  animation: toastIn 0.3s var(--ease);
+}
+.toast svg { width: 18px; height: 18px; color: var(--color-success); flex-shrink: 0; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.toast.leaving { animation: toastOut 0.25s var(--ease) forwards; }
+@keyframes toastOut { to { opacity: 0; transform: translateX(20px); } }
+
+/* ---------- Scroll reveal ---------- */
+[data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+[data-reveal].in-view { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+  .hero-media video { display: none; }
+}
+
+/* ---------- Lightbox ---------- */
+.lightbox { position: fixed; inset: 0; z-index: 800; background: rgba(6,8,11,0.94); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease); }
+.lightbox.open { opacity: 1; pointer-events: auto; }
+.lightbox-img-wrap { max-width: 90vw; max-height: 82vh; position: relative; }
+.lightbox img { max-width: 90vw; max-height: 82vh; object-fit: contain; border-radius: var(--radius-sm); }
+.lightbox-close, .lightbox-prev, .lightbox-next { position: absolute; background: rgba(22,28,37,0.8); border: 1px solid var(--color-on-scrim-border); color: var(--color-on-scrim); width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.lightbox-close { top: -60px; right: 0; }
+.lightbox-prev { left: -60px; top: 50%; transform: translateY(-50%); }
+.lightbox-next { right: -60px; top: 50%; transform: translateY(-50%); }
+@media (max-width: 900px) { .lightbox-prev, .lightbox-next { display: none; } }
+.lightbox-caption { position: absolute; bottom: -40px; left: 0; right: 0; text-align: center; color: var(--color-on-scrim-dim); font-size: 0.85rem; }
+
+.gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+@media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+.gallery-item { border-radius: var(--radius-sm); overflow: hidden; aspect-ratio: 1; cursor: pointer; position: relative; }
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s var(--ease); }
+.gallery-item:hover img { transform: scale(1.1); }
+
+/* ---------- AI Concierge ---------- */
+/* Fixed to the right, stacked above .back-to-top (same corner, same z-index
+   band) so the two never overlap once both are visible past the hero. */
+.concierge-launcher {
+  position: fixed; bottom: calc(var(--space-4) + 48px + var(--space-2)); right: var(--space-4); z-index: 400;
+  display: flex; align-items: center; gap: 0.7rem; background: var(--color-surface-raised);
+  border: 1px solid var(--color-border); color: var(--color-ivory); padding: 0.8rem 1.2rem 0.8rem 0.8rem;
+  border-radius: 999px; box-shadow: var(--shadow-soft);
+}
+.concierge-launcher-icon {
+  width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--color-gold-fill), var(--color-gold-fill-2));
+  display: flex; align-items: center; justify-content: center; color: var(--color-on-gold);
+}
+.concierge-launcher-icon svg { width: 20px; height: 20px; }
+.concierge-launcher span { font-size: 0.85rem; font-weight: 600; }
+.concierge-launcher .pulse-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--color-success); box-shadow: 0 0 0 0 rgba(111,174,122,0.6); animation: pulseDot 2s infinite; }
+@keyframes pulseDot { 0% { box-shadow: 0 0 0 0 rgba(111,174,122,0.55); } 70% { box-shadow: 0 0 0 8px rgba(111,174,122,0); } 100% { box-shadow: 0 0 0 0 rgba(111,174,122,0); } }
+
+/* D-23: on narrow viewports the fixed launcher can sit directly over the hero
+   CTAs on initial load (the header already carries an always-visible entry
+   point to the same assistant, .nav-assistant, so hiding this one briefly
+   costs no discoverability). Revealed once the visitor scrolls past the hero,
+   same scroll-reveal pattern as .back-to-top. */
+@media (max-width: 640px) {
+  .concierge-launcher { opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.3s var(--ease); }
+  .concierge-launcher.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+}
+
+.concierge-panel {
+  position: fixed; bottom: var(--space-4); right: var(--space-4); z-index: 450;
+  width: min(380px, calc(100vw - 2 * var(--space-4))); height: min(560px, calc(100vh - 2 * var(--space-4)));
+  background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-elev); display: flex; flex-direction: column; overflow: hidden;
+  transform: translateY(16px) scale(0.98); opacity: 0; pointer-events: none; transition: all 0.3s var(--ease);
+}
+.concierge-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+.concierge-head { padding: var(--space-3); background: var(--color-surface-raised); border-bottom: 1px solid var(--color-border-soft); display: flex; align-items: center; justify-content: space-between; }
+.concierge-head-info { display: flex; align-items: center; gap: 0.7rem; }
+.concierge-head-info strong { font-size: 0.95rem; display: block; }
+.concierge-head-info span { font-size: 0.76rem; color: var(--color-success); }
+.concierge-close { background: none; border: none; color: var(--color-muted); width: 32px; height: 32px; }
+.concierge-body { flex: 1; overflow-y: auto; padding: var(--space-3); display: flex; flex-direction: column; gap: 0.7rem; }
+.concierge-msg { max-width: 82%; padding: 0.7rem 0.95rem; border-radius: 14px; font-size: 0.88rem; line-height: 1.45; }
+.concierge-msg.bot { background: var(--color-surface-raised); align-self: flex-start; border-bottom-left-radius: 4px; }
+.concierge-msg.user { background: linear-gradient(135deg, var(--color-gold-fill), var(--color-gold-fill-2)); color: var(--color-on-gold); align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
+.concierge-quick-replies { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 var(--space-3) var(--space-2); }
+.concierge-chip { background: transparent; border: 1px solid var(--color-border); color: var(--color-gold-bright); padding: 0.45rem 0.9rem; border-radius: 999px; font-size: 0.8rem; }
+.concierge-chip:hover { background: rgba(201,162,75,0.12); }
+.concierge-typing { display: flex; gap: 4px; align-self: flex-start; padding: 0.7rem 0.95rem; background: var(--color-surface-raised); border-radius: 14px; }
+.concierge-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--color-muted); animation: typingBounce 1.2s infinite; }
+.concierge-typing span:nth-child(2) { animation-delay: 0.15s; }
+.concierge-typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typingBounce { 0%,60%,100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+.concierge-input { display: flex; gap: 0.6rem; padding: var(--space-3); border-top: 1px solid var(--color-border-soft); }
+.concierge-input input { flex: 1; background: var(--color-input-bg); border: 1px solid var(--color-input-border); border-radius: 999px; padding: 0.7rem 1rem; color: var(--color-ivory); font-size: 0.88rem; }
+.concierge-input button { width: 42px; height: 42px; border-radius: 50%; background: var(--color-gold-fill-2); border: none; color: var(--color-on-gold); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.concierge-input button svg { width: 18px; height: 18px; }
+.concierge-disclaimer { font-size: 0.68rem; color: var(--color-muted); text-align: center; padding: 0 var(--space-3) var(--space-2); }
+
+/* ---------- Sticky mortgage/valuation widgets ---------- */
+.calc-card { background: var(--color-surface); border: 1px solid var(--color-border-soft); border-radius: var(--radius-lg); padding: var(--space-4); }
+.calc-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.calc-row label { font-size: 0.85rem; color: var(--color-ivory-dim); }
+.calc-row output { font-family: var(--font-display); color: var(--color-gold-bright); font-size: 1rem; }
+.calc-row input[type="range"] { width: 100%; accent-color: var(--color-gold); }
+.calc-result { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-border-soft); display: flex; justify-content: space-between; align-items: baseline; }
+.calc-result strong { font-family: var(--font-display); font-size: 1.6rem; color: var(--color-gold-bright); }
+
+/* ---------- Alerts (inline, persistent) ---------- */
+/* Distinct from toasts: a toast is transient and non-blocking, an alert stays
+   in the layout next to the thing it describes. Colour is never the only signal —
+   every variant carries an icon and a text label. */
+.alert {
+  display: flex; align-items: flex-start; gap: 0.7rem;
+  padding: var(--space-3); border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-soft); background: var(--color-surface);
+  font-size: 0.9rem; color: var(--color-ivory-dim);
+}
+.alert svg { width: 19px; height: 19px; flex-shrink: 0; margin-top: 2px; }
+.alert strong { display: block; color: var(--color-ivory); margin-bottom: 0.15rem; }
+.alert-success { border-color: rgba(111,174,122,0.4); background: rgba(111,174,122,0.08); }
+.alert-success svg { color: var(--color-success); }
+.alert-error { border-color: rgba(224,124,104,0.4); background: rgba(224,124,104,0.08); }
+.alert-error svg { color: var(--color-error); }
+.alert-warning { border-color: rgba(227,156,90,0.4); background: rgba(227,156,90,0.08); }
+.alert-warning svg { color: var(--color-warning); }
+.alert-info { border-color: var(--color-border); background: rgba(201,162,75,0.07); }
+.alert-info svg { color: var(--color-gold); }
+
+/* ---------- Loading skeletons ---------- */
+/* Sized to the real content so nothing shifts when data arrives (CLS budget). */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-surface-raised) 37%, var(--color-surface) 63%);
+  background-size: 400% 100%; border-radius: var(--radius-sm);
+  animation: skeletonSheen 1.4s ease-in-out infinite;
+}
+@keyframes skeletonSheen { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+.skeleton-card { border: 1px solid var(--color-border-soft); border-radius: var(--radius-md); overflow: hidden; }
+.skeleton-media { aspect-ratio: 4/3; }
+.skeleton-line { height: 0.85rem; margin: 0.6rem var(--space-3); }
+.skeleton-line.short { width: 45%; }
+.skeleton-line.long { width: 80%; }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* ---------- Empty / error states ---------- */
+.empty-state h3 { font-size: 1.2rem; color: var(--color-ivory); margin-bottom: 0.5rem; }
+.empty-state p { max-width: 40ch; margin: 0 auto; }
+.empty-state .btn { margin-top: var(--space-3); }
+.empty-state.is-error svg { color: var(--color-error); }
+
+/* ---------- Utility ---------- */
+[hidden] { display: none !important; }
+.text-muted { color: var(--color-muted); }
+.mt-4 { margin-top: var(--space-4); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.footer-areas { font-size: 0.88rem; }
+
+/* ---------- Theme toggle ---------- */
+/* Sun/moon switch. Both icons stay in the DOM; the one for the CURRENT mode
+   is hidden so the icon shown is always the action ("switch to light" shows
+   a sun while dark is active, "switch to dark" shows a moon while light is
+   active). js/theme.js keeps aria-label/aria-pressed in sync with data-theme. */
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+  background: none; border: 1px solid var(--color-border-soft); border-radius: 999px;
+  color: var(--color-ivory); cursor: pointer;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+.theme-toggle:hover { border-color: var(--color-gold); color: var(--color-gold-bright); }
+.theme-toggle-icon { width: 19px; height: 19px; position: relative; }
+.theme-toggle-icon.icon-moon { display: none; }
+html[data-theme="light"] .theme-toggle-icon.icon-sun { display: none; }
+html[data-theme="light"] .theme-toggle-icon.icon-moon { display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  .theme-toggle-icon { transition: transform 0.35s var(--ease), opacity 0.35s var(--ease); }
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.9rem;
+  border-radius: 999px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em;
+  border: 1px solid var(--color-border); background: rgba(201,162,75,0.1); color: var(--color-gold-bright);
+}
+.badge-status { text-transform: uppercase; letter-spacing: 0.08em; }
+/* Sample data. Deliberately the loudest badge in the system — it must be
+   impossible to mistake placeholder inventory for real inventory. */
+.badge-demo {
+  display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(227,156,90,0.12); color: var(--color-warning);
+  border: 1px solid rgba(227,156,90,0.35); padding: 0.35rem 0.9rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+}
+/* Unresolved client content. Never subtle — this must be visible in review. */
+.badge-required, [data-content-required] > .badge-required {
+  display: inline-flex; background: rgba(224,124,104,0.14); color: var(--color-error);
+  border: 1px dashed rgba(224,124,104,0.5); padding: 0.3rem 0.8rem; border-radius: var(--radius-sm);
+  font-size: 0.74rem; font-weight: 600; letter-spacing: 0.04em;
+}
+
+/* =========================================================
+   Interior page shell + property search  (added 2026-09-12)
+   Route pages introduced by the static multi-page scaffold.
+   Everything below reuses existing tokens only — no new colour
+   values — so both themes are inherited automatically.
+   ========================================================= */
+
+/* ---------- Interior page header ---------- */
+/* Interior pages have no photographic hero, so the heading block sits on the
+   page background and only needs clearance for the fixed navbar. */
+.page-head { padding-top: calc(var(--nav-height) + var(--space-5)); padding-bottom: var(--space-4); }
+.page-head h1 { font-size: clamp(2rem, 4vw, 3rem); max-width: 26ch; }
+.page-head .lede { max-width: 62ch; margin-top: var(--space-3); font-size: 1.05rem; color: var(--color-ivory-dim); }
+.page-head .lede .badge-demo { margin-left: 0.4rem; vertical-align: middle; }
+.page-head.center { text-align: center; }
+.page-head.center h1, .page-head.center .lede { margin-left: auto; margin-right: auto; }
+
+/* ---------- Results layout ---------- */
+.results-layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+.results-col { min-width: 0; }
+
+.results-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  flex-wrap: wrap; margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2); border-bottom: 1px solid var(--color-border-soft);
+}
+.results-count { font-size: 0.92rem; color: var(--color-ivory-dim); }
+.results-count strong { color: var(--color-ivory); }
+.results-sort { display: flex; align-items: center; gap: 0.6rem; }
+.results-sort label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-muted); }
+.results-sort select {
+  background: var(--color-input-bg); border: 1px solid var(--color-input-border); color: var(--color-ivory);
+  border-radius: var(--radius-sm); padding: 0.55rem 0.8rem; font-size: 0.88rem; min-height: 44px;
+}
+
+/* ---------- Filter panel ---------- */
+.filter-panel {
+  background: var(--color-surface); border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md); padding: var(--space-3);
+  display: grid; gap: var(--space-3);
+  position: sticky; top: calc(var(--nav-height) + var(--space-2));
+}
+.filter-panel-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.filter-panel-head h2 { font-size: 1.05rem; }
+.filter-reset { font-size: 0.82rem; min-height: 44px; }
+
+.filter-group { display: grid; gap: 0.4rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.filter-group > label, .filter-group > legend {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--color-muted); padding: 0; font-weight: 600;
+}
+.filter-group input, .filter-group select {
+  background: var(--color-input-bg); border: 1px solid var(--color-input-border); color: var(--color-ivory);
+  border-radius: var(--radius-sm); padding: 0.62rem 0.7rem; font-size: 0.9rem; width: 100%;
+  min-height: 44px; font-family: inherit;
+}
+.filter-row { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.filter-row input { flex: 1 1 5rem; min-width: 0; }
+.filter-row select { flex: 1 1 100%; }
+.filter-sep { color: var(--color-muted); flex: 0 0 auto; }
+.filter-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+
+.filter-check {
+  display: flex; align-items: center; gap: 0.55rem; font-size: 0.9rem;
+  color: var(--color-ivory-dim); min-height: 44px; cursor: pointer;
+}
+.filter-check input { width: 17px; height: 17px; accent-color: var(--color-gold-fill-2); flex-shrink: 0; }
+
+/* Segmented control — Buy / Rent / Commercial. Same visual language as the
+   hero search tabs so the two read as one system. */
+.segmented { display: flex; flex-wrap: wrap; gap: 0.3rem; background: var(--color-fill-ghost); padding: 0.25rem; border-radius: 999px; }
+.segmented-btn {
+  flex: 1 1 auto; background: none; border: none; color: var(--color-muted);
+  padding: 0.5rem 0.7rem; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+  min-height: 40px; transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.segmented-btn:hover { color: var(--color-ivory); }
+.segmented-btn.active { background: var(--color-gold-fill-2); color: var(--color-on-gold); }
+
+/* ---------- Mobile filter drawer ---------- */
+/* Desktop shows the panel inline and hides the trigger; below 900px the panel
+   becomes a full-height sheet so filters never push the results off-screen. */
+.filter-trigger { display: none; margin-bottom: var(--space-3); }
+.filter-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px;
+  padding: 0 0.35rem; border-radius: 999px; background: var(--color-gold-fill-2); color: var(--color-on-gold);
+  font-size: 0.72rem; font-weight: 700;
+}
+.filter-drawer-close, .filter-drawer-apply { display: none; }
+
+@media (max-width: 900px) {
+  .results-layout { grid-template-columns: minmax(0, 1fr); }
+  .filter-trigger { display: inline-flex; }
+  .filter-drawer {
+    position: fixed; inset: 0; z-index: 650; background: rgba(8,10,14,0.6);
+    backdrop-filter: blur(4px); opacity: 0; pointer-events: none;
+    transition: opacity 0.3s var(--ease);
+  }
+  .filter-drawer.open { opacity: 1; pointer-events: auto; }
+  .filter-drawer-inner {
+    position: absolute; inset: 0 0 0 auto; width: min(92vw, 420px); height: 100%;
+    background: var(--color-bg); border-left: 1px solid var(--color-border);
+    overflow-y: auto; padding: var(--space-3);
+    transform: translateX(100%); transition: transform 0.35s var(--ease);
+    display: flex; flex-direction: column; gap: var(--space-3);
+  }
+  .filter-drawer.open .filter-drawer-inner { transform: translateX(0); }
+  .filter-panel { position: static; background: none; border: 0; padding: 0; }
+  .filter-drawer-close {
+    display: flex; align-items: center; justify-content: center; align-self: flex-end;
+    width: 44px; height: 44px; border-radius: 50%; background: var(--color-fill-ghost);
+    border: 1px solid var(--color-border-soft); color: var(--color-ivory); flex-shrink: 0;
+  }
+  .filter-drawer-close svg { width: 20px; height: 20px; }
+  .filter-drawer-apply { display: block; position: sticky; bottom: 0; padding-top: var(--space-2); background: var(--color-bg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .filter-drawer, .filter-drawer-inner { transition: none; }
+}
+
+/* ---------- Property detail page ---------- */
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--color-muted); margin-bottom: var(--space-3); }
+.breadcrumb a { color: var(--color-muted); }
+.breadcrumb a:hover { color: var(--color-gold-bright); }
+
+.property-head { padding-bottom: var(--space-3); }
+.property-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+.property-head h1 { font-size: clamp(1.8rem, 3.4vw, 2.7rem); max-width: 22ch; }
+.property-loc { display: flex; align-items: center; gap: 0.45rem; margin-top: var(--space-2); color: var(--color-ivory-dim); font-size: 1rem; }
+.property-loc svg { width: 17px; height: 17px; color: var(--color-gold); flex-shrink: 0; }
+.property-flags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: var(--space-3); }
+.property-head-price { text-align: right; }
+@media (max-width: 640px) { .property-head-price { text-align: left; } }
+.property-price { display: block; font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2rem); color: var(--color-gold-bright); }
+.property-ref { display: block; margin-top: 0.3rem; font-size: 0.76rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); }
+
+/* First gallery frame spans 2×2 so the set reads as hero + thumbnails. */
+.gallery-grid-lead .gallery-item:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
+@media (max-width: 560px) { .gallery-grid-lead .gallery-item:first-child { grid-column: span 2; grid-row: auto; aspect-ratio: 4/3; } }
+
+.property-video { margin-top: var(--space-4); }
+.video-frame { border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--color-border-soft); background: var(--color-surface); }
+.video-frame video { width: 100%; height: auto; display: block; }
+
+.property-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--space-5); align-items: start; }
+@media (max-width: 980px) { .property-layout { grid-template-columns: minmax(0, 1fr); } }
+.property-main { display: grid; gap: var(--space-5); min-width: 0; }
+.property-sub { font-size: 1.25rem; margin-bottom: var(--space-3); }
+.property-body { color: var(--color-ivory-dim); max-width: 70ch; }
+
+.spec-strip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3);
+  background: var(--color-surface); border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md); padding: var(--space-3);
+}
+.spec-item { display: grid; gap: 0.2rem; min-width: 0; }
+.spec-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--color-muted); }
+.spec-value { font-family: var(--font-display); font-size: 1.15rem; color: var(--color-ivory); }
+
+.amenity-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.6rem var(--space-3); }
+.amenity-list li { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.93rem; color: var(--color-ivory-dim); }
+.amenity-list svg { width: 17px; height: 17px; color: var(--color-success); flex-shrink: 0; margin-top: 3px; }
+
+/* Sticky agent card — the conversion surface stays in view while the visitor
+   reads down the description, amenities and map. */
+.property-aside { position: sticky; top: calc(var(--nav-height) + var(--space-2)); display: grid; gap: var(--space-3); }
+@media (max-width: 980px) { .property-aside { position: static; } }
+.agent-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); display: grid; gap: var(--space-3); }
+.agent-card-head { display: flex; align-items: center; gap: 0.9rem; }
+.agent-card-head img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border); background: var(--color-bg-alt); }
+.agent-card-head strong { display: block; font-family: var(--font-display); font-size: 1.05rem; }
+.agent-card-head span { font-size: 0.82rem; color: var(--color-muted); }
+.agent-card-actions { display: grid; gap: 0.6rem; }
+.agent-card-note { font-size: 0.82rem; color: var(--color-muted); }
+
+/* ---------- Missing-image fallback ---------- */
+/* Applied by js/main.js when an <img> fails to load. Holds the exact space the
+   image would have taken so cards never collapse, and reads as a deliberate
+   placeholder rather than a broken file. No substitute photograph is shown —
+   another property's picture in this slot would misrepresent the listing. */
+.img-missing {
+  background:
+    repeating-linear-gradient(45deg, var(--color-fill-ghost) 0 10px, transparent 10px 20px),
+    var(--color-bg-alt);
+  border: 1px dashed var(--color-border);
+  min-height: 120px;
+}
+.has-missing-image { position: relative; }
+.has-missing-image::after {
+  content: "Image unavailable";
+  position: absolute; inset: auto 0 0 0; padding: 0.45rem 0.7rem;
+  font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600;
+  color: var(--color-on-scrim-dim); background: rgba(11,14,19,0.72);
+  text-align: center; pointer-events: none;
+}

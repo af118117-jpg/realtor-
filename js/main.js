@@ -1,0 +1,322 @@
+/**
+ * Global site behavior: navbar state, mobile drawer, smooth scroll active-link,
+ * scroll reveal, back-to-top, toast notifications, testimonial carousel, lightbox.
+ * Keep this module framework-free and dependency-free.
+ */
+
+(function () {
+  "use strict";
+
+  /* ---------- Navbar scroll state ---------- */
+  const navbar = document.querySelector(".navbar");
+  function updateNavbarState() {
+    if (!navbar) return;
+    navbar.classList.toggle("is-scrolled", window.scrollY > 24);
+  }
+  updateNavbarState();
+  window.addEventListener("scroll", updateNavbarState, { passive: true });
+
+  /* ---------- Mobile drawer ---------- */
+  const navToggle = document.querySelector(".nav-toggle");
+  const drawer = document.querySelector(".mobile-drawer");
+  const drawerClose = document.querySelector(".mobile-drawer-close");
+  function openDrawer() {
+    drawer?.classList.add("open");
+    navToggle?.setAttribute("aria-expanded", "true");
+    document.body.style.overflow = "hidden";
+  }
+  function closeDrawer() {
+    drawer?.classList.remove("open");
+    navToggle?.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
+  }
+  navToggle?.addEventListener("click", openDrawer);
+  drawerClose?.addEventListener("click", closeDrawer);
+  drawer?.addEventListener("click", (e) => { if (e.target === drawer) closeDrawer(); });
+  drawer?.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeDrawer));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+
+  /* ---------- Active nav link on scroll (single-page sections) ---------- */
+  const sections = document.querySelectorAll("main section[id]");
+  const navAnchors = document.querySelectorAll('.nav-links a[href*="#"], .mobile-drawer nav a[href*="#"]');
+  if (sections.length && navAnchors.length) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const id = entry.target.getAttribute("id");
+          navAnchors.forEach((a) => {
+            const hrefId = a.getAttribute("href").split("#")[1];
+            a.classList.toggle("active", hrefId === id);
+          });
+        });
+      },
+      { rootMargin: "-45% 0px -50% 0px", threshold: 0 }
+    );
+    sections.forEach((s) => observer.observe(s));
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  const revealTargets = document.querySelectorAll("[data-reveal]");
+  if (revealTargets.length) {
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    revealTargets.forEach((el) => revealObserver.observe(el));
+  }
+
+  /* ---------- Back to top ---------- */
+  const backToTop = document.querySelector(".back-to-top");
+  function updateBackToTop() {
+    backToTop?.classList.toggle("visible", window.scrollY > 600);
+  }
+  updateBackToTop();
+  window.addEventListener("scroll", updateBackToTop, { passive: true });
+  backToTop?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+  /* ---------- Hero background video (desktop + motion-safe only) ---------- */
+  const heroVideo = document.querySelector("[data-hero-video]");
+  if (heroVideo && window.innerWidth >= 768 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    heroVideo.addEventListener("canplay", () => heroVideo.classList.add("is-active"), { once: true });
+    heroVideo.preload = "auto";
+    heroVideo.load();
+    heroVideo.play().catch(() => {}); // autoplay can be blocked; the poster image stays visible either way
+  }
+
+  /* ---------- Concierge launcher reveal (D-23, mobile only via CSS) ---------- */
+  const conciergeLauncher = document.querySelector(".concierge-launcher");
+  function updateConciergeLauncher() {
+    conciergeLauncher?.classList.toggle("visible", window.scrollY > 600);
+  }
+  updateConciergeLauncher();
+  window.addEventListener("scroll", updateConciergeLauncher, { passive: true });
+
+  /* ---------- Toasts ---------- */
+  function showToast(message, opts = {}) {
+    let stack = document.querySelector(".toast-stack");
+    if (!stack) {
+      stack = document.createElement("div");
+      stack.className = "toast-stack";
+      stack.setAttribute("aria-live", "polite");
+      document.body.appendChild(stack);
+    }
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.setAttribute("role", "status");
+    toast.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+      <span>${message}</span>`;
+    stack.appendChild(toast);
+    const ttl = opts.duration || 3200;
+    setTimeout(() => {
+      toast.classList.add("leaving");
+      setTimeout(() => toast.remove(), 250);
+    }, ttl);
+  }
+  window.showToast = showToast;
+
+  /* ---------- Testimonial carousel ---------- */
+  const carousel = document.querySelector(".testimonial-carousel");
+  if (carousel) {
+    const track = carousel.querySelector(".testimonial-slides");
+    const slides = carousel.querySelectorAll(".testimonial-slide");
+    const dotsWrap = carousel.querySelector(".testimonial-dots");
+    const prevBtn = carousel.querySelector(".testimonial-arrow.prev");
+    const nextBtn = carousel.querySelector(".testimonial-arrow.next");
+    let index = 0;
+    let timer = null;
+
+    slides.forEach((_, i) => {
+      const dot = document.createElement("button");
+      dot.className = "testimonial-dot" + (i === 0 ? " active" : "");
+      dot.setAttribute("aria-label", `Go to testimonial ${i + 1}`);
+      dot.addEventListener("click", () => goTo(i));
+      dotsWrap?.appendChild(dot);
+    });
+
+    function goTo(i) {
+      index = (i + slides.length) % slides.length;
+      track.style.transform = `translateX(-${index * 100}%)`;
+      dotsWrap?.querySelectorAll(".testimonial-dot").forEach((d, di) => d.classList.toggle("active", di === index));
+      resetTimer();
+    }
+    function resetTimer() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(() => goTo(index + 1), 6500);
+    }
+    prevBtn?.addEventListener("click", () => goTo(index - 1));
+    nextBtn?.addEventListener("click", () => goTo(index + 1));
+    carousel.addEventListener("mouseenter", () => timer && clearInterval(timer));
+    carousel.addEventListener("mouseleave", resetTimer);
+    resetTimer();
+  }
+
+  /* ---------- Lightbox gallery ---------- */
+  const lightbox = document.querySelector(".lightbox");
+  if (lightbox) {
+    let galleryItems = Array.from(document.querySelectorAll("[data-lightbox] .gallery-item, .gallery-item[data-full]"));
+    const lbImg = lightbox.querySelector("img");
+    const lbCaption = lightbox.querySelector(".lightbox-caption");
+    const lbClose = lightbox.querySelector(".lightbox-close");
+    const lbPrev = lightbox.querySelector(".lightbox-prev");
+    const lbNext = lightbox.querySelector(".lightbox-next");
+    let lbIndex = 0;
+
+    function openLightbox(i) {
+      lbIndex = i;
+      const item = galleryItems[lbIndex];
+      const full = item.dataset.full || item.querySelector("img")?.src;
+      const caption = item.dataset.caption || item.querySelector("img")?.alt || "";
+      lbImg.src = full;
+      lbImg.alt = caption;
+      lbCaption.textContent = caption;
+      lightbox.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+    function bindGalleryItems() {
+      // Re-queried on each call: the property gallery is re-rendered when the
+      // admin bridge resolves uploaded images, which replaces these elements.
+      galleryItems = Array.from(document.querySelectorAll("[data-lightbox] .gallery-item, .gallery-item[data-full]"));
+      galleryItems.forEach((item, i) => {
+        if (item.dataset.lightboxBound) return;
+        item.dataset.lightboxBound = "1";
+        item.addEventListener("click", () => openLightbox(i));
+        item.setAttribute("tabindex", "0");
+        item.setAttribute("role", "button");
+        item.setAttribute("aria-label", "Open image " + (i + 1) + " in lightbox");
+        item.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openLightbox(i); } });
+      });
+    }
+    bindGalleryItems();
+    window.__rsLightbox = { rebind: bindGalleryItems };
+    lbClose?.addEventListener("click", closeLightbox);
+    lbPrev?.addEventListener("click", () => openLightbox((lbIndex - 1 + galleryItems.length) % galleryItems.length));
+    lbNext?.addEventListener("click", () => openLightbox((lbIndex + 1) % galleryItems.length));
+    lightbox.addEventListener("click", (e) => { if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener("keydown", (e) => {
+      if (!lightbox.classList.contains("open")) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") lbPrev?.click();
+      if (e.key === "ArrowRight") lbNext?.click();
+    });
+  }
+
+  /**
+   * ---------- Admin-panel overrides (same-browser only) ----------
+   * The admin panel (`admin/settings.html`) has no backend to publish to, so
+   * it writes business-info edits to this browser's own localStorage. If
+   * present, those values take priority over the js/config.js defaults below
+   * — this is what makes "edit in the admin panel, see it reflected on the
+   * site" true, but only within the one browser that made the edit. A
+   * visitor on a different device/browser still sees the js/config.js
+   * values. See plans/MASTER_PLAN.md D-27.
+   */
+  if (typeof REALTOR_CONFIG !== "undefined") {
+    try {
+      const raw = localStorage.getItem("rs-admin:settings");
+      if (raw) {
+        const adminSettings = JSON.parse(raw);
+        const biz = adminSettings.business || {};
+        ["siteName", "phone", "phoneSecondary", "email", "officeAddress"].forEach((key) => {
+          if (biz[key]) REALTOR_CONFIG[key] = biz[key];
+        });
+        if (biz.social) {
+          Object.keys(biz.social).forEach((platform) => {
+            if (biz.social[platform]) REALTOR_CONFIG.social[platform] = biz.social[platform];
+          });
+        }
+        if (biz.businessHours && biz.businessHours.status) {
+          REALTOR_CONFIG.businessHours = biz.businessHours;
+        }
+        if (adminSettings.currency) REALTOR_CONFIG.currency = adminSettings.currency;
+        if (adminSettings.currencySymbol) REALTOR_CONFIG.currencySymbol = adminSettings.currencySymbol;
+        REALTOR_CONFIG.businessHoursDisplay = formatBusinessHours(REALTOR_CONFIG.businessHours);
+      }
+    } catch {
+      // Malformed or absent admin data — silently keep the js/config.js defaults.
+    }
+  }
+
+  /* ---------- Populate business info from config wherever data-config is present ---------- */
+  if (typeof REALTOR_CONFIG !== "undefined") {
+    document.querySelectorAll("[data-config]").forEach((el) => {
+      const path = el.getAttribute("data-config").split(".");
+      let value = REALTOR_CONFIG;
+      for (const key of path) value = value?.[key];
+      // Booleans are feature flags, not display text. Previously these were written
+      // straight into the DOM, so the sample-data badge rendered the string "true".
+      if (typeof value === "boolean") { el.hidden = !value; return; }
+      if (value === undefined || value === null || value === "") {
+        el.closest("[data-config-hide-empty]")?.remove();
+        return;
+      }
+      // This pass only ever writes text. href is owned by the data-config-href pass
+      // below — an anchor carrying both attributes used to keep its placeholder label.
+      el.textContent = value;
+    });
+    // Feature flags: the element is shown only while the flag is truthy.
+    document.querySelectorAll("[data-config-flag]").forEach((el) => {
+      const path = el.getAttribute("data-config-flag").split(".");
+      let value = REALTOR_CONFIG;
+      for (const key of path) value = value?.[key];
+      el.hidden = !value;
+    });
+    document.querySelectorAll("[data-config-href]").forEach((el) => {
+      const path = el.getAttribute("data-config-href").split(".");
+      let value = REALTOR_CONFIG;
+      for (const key of path) value = value?.[key];
+      if (!value) { el.style.display = "none"; return; }
+      // A value still holding the [CONTENT REQUIRED] token is not a usable link target.
+      if (String(value).includes("[CONTENT REQUIRED]")) { el.style.display = "none"; return; }
+      if (el.getAttribute("data-config-href-type") === "tel") el.setAttribute("href", telHref(value));
+      else if (el.getAttribute("data-config-href-type") === "mailto") el.setAttribute("href", `mailto:${value}`);
+      else if (el.getAttribute("data-config-href-type") === "whatsapp") {
+        const wa = buildWhatsAppLink(el.getAttribute("data-wa-message") || "");
+        if (!wa) { el.style.display = "none"; return; } // hide until a real number is configured
+        el.setAttribute("href", wa);
+      }
+      else el.setAttribute("href", value);
+    });
+    document.title = document.title.replace("Realtor Shamraiz", REALTOR_CONFIG.siteName);
+  }
+
+  /* ---------- Image fallback ----------
+     An image that fails to load must not leave a broken-image glyph and a
+     collapsed card on a property site. This marks the element so CSS can show
+     a neutral branded tile at the same dimensions, keeping layout stable.
+     It deliberately does NOT substitute a different photograph — showing some
+     other property's picture in place of the missing one would misrepresent
+     the listing. The alt text remains the accessible description either way.
+     Listens in the CAPTURE phase because `error` from <img> does not bubble. */
+  document.addEventListener(
+    "error",
+    function (e) {
+      var el = e.target;
+      if (!el || el.tagName !== "IMG" || el.dataset.fallbackApplied) return;
+      el.dataset.fallbackApplied = "1";
+      el.classList.add("img-missing");
+      // Keep the box occupied without fetching anything else.
+      el.removeAttribute("src");
+      var holder = el.closest(".listing-media, .gallery-item, .split-media, .area-card");
+      if (holder) holder.classList.add("has-missing-image");
+      if (window.console && console.warn) {
+        console.warn("[Realtor Shamraiz] image failed to load:", el.getAttribute("alt") || "(no alt)");
+      }
+    },
+    true
+  );
+
+  document.documentElement.classList.add("js-ready");
+})();

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Realtor Shamraiz | Luxury Properties in Bahria Town Rawalpindi &amp; DHA Islamabad</title>
+<meta name="description" content="Realtor Shamraiz offers luxury designer properties in Bahria Town Rawalpindi and DHA Islamabad, with complete transparency and properly documented transactions.">
+<!-- TODO: canonical + og:url require the live domain ([CONTENT REQUIRED]). Do not deploy without them. -->
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Realtor Shamraiz | Luxury Properties in Bahria Town Rawalpindi &amp; DHA Islamabad">
+<meta property="og:description" content="Luxury designer properties in Bahria Town Rawalpindi and DHA Islamabad. Transparent dealings and properly documented transactions.">
+<meta property="og:image" content="assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet link below. See js/theme.js. -->
+<script src="js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<!--
+  Structured data. Only CLIENT-CONFIRMED facts appear here (see docs/CLIENT_COPY.md,
+  docs/COPY_DECK.md §1.2). Confirmed: service areas (Bahria Town Rawalpindi, DHA
+  Islamabad — precision corrected 2026-09-08 against the client's own YouTube
+  channel), telephone (+92 333 6413988).
+  No `address` block: the single-city guess this used to carry ("Islamabad")
+  no longer holds now that coverage is confirmed to span two different cities.
+  `officeAddress` and `businessHours` were client-confirmed 2026-09-11 (see
+  docs/CLIENT_COPY.md Submission 2) and are now live in the visible contact
+  section (js/config.js), but `city` is still unconfirmed — a wrong
+  addressLocality is worse than an absent one, so the JSON-LD `address`/
+  `openingHoursSpecification` block is deliberately left for a dedicated SEO
+  pass once `city` lands, rather than added piecemeal here.
+  STILL MISSING — must be added before deploy: url (live domain), city,
+  geo coordinates, legal name, brokerage, license.
+  Do NOT add aggregateRating or review markup — no genuine reviews exist.
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "Realtor Shamraiz",
+  "description": "Luxury designer properties in Bahria Town Rawalpindi and DHA Islamabad, with transparent dealings and properly documented transactions.",
+  "areaServed": ["Bahria Town Rawalpindi", "DHA Islamabad"],
+  "telephone": "+923336413988"
+}
+</script>
+<!--
+  FAQPage schema intentionally omitted until the visible FAQ answers are
+  client-confirmed. Marking up unverified answers would publish them to search
+  and AI answer engines as ground truth. See docs/SEO_STRATEGY.md §4.1.
+-->
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!--
+  Site chrome (navbar, mobile drawer, footer, assistant widget, back-to-top)
+  is injected by js/partials.js so the 19 routes in the IA share ONE copy.
+  See that file's header for load-order and URL requirements.
+-->
+<div data-partial="header"></div>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="home">
+    <div class="hero-media">
+      <img src="assets/images/hero.jpg" alt="Luxury estate exterior at dusk" fetchpriority="high">
+      <!-- Demo footage (assets/video/property-tour.mp4) — replace with real property
+           video when available. Desktop + motion-safe only (js/main.js); the image
+           above is the permanent fallback for mobile, reduced-motion, and any load
+           failure, so nothing here can leave broken or blank media. -->
+      <video muted loop playsinline preload="none" aria-hidden="true" data-hero-video>
+        <source src="assets/video/property-tour.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="container hero-content">
+      <!-- Every clause below traces to a source row in docs/COPY_DECK.md §3.1.
+           Nothing here is authored on the client's behalf. -->
+      <p class="eyebrow">Luxury Real Estate · Bahria Town Rawalpindi &amp; DHA Islamabad</p>
+      <h1>Own Your <em>Experience.</em></h1>
+      <p class="lede">Realtor Shamraiz helps buyers, sellers, investors and landlords secure luxury designer properties in Bahria Town Rawalpindi and DHA Islamabad — breathtaking architecture and superior quality finishes, backed by complete transparency and properly documented transactions.</p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1.1.4 2.2.8 3.2a2 2 0 0 1-.4 2.1L8.1 10.5a16 16 0 0 0 6 6l1.5-1.4a2 2 0 0 1 2.1-.4c1 .4 2.1.7 3.2.8a2 2 0 0 1 1.1 2.4z"/></svg>
+          Book a Site Visit
+        </a>
+        <a class="btn btn-outline" href="/sell">Sell or Rent Out Your Property</a>
+        <a class="btn-link" href="/ai-assistant" data-open-assistant>
+          Ask the AI Assistant
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <form class="search-widget" data-home-search aria-label="Property search">
+        <div class="search-tabs" role="tablist">
+          <button type="button" class="search-tab active" data-tab="buy">Buy</button>
+          <button type="button" class="search-tab" data-tab="rent">Rent</button>
+          <button type="button" class="search-tab" data-tab="commercial">Commercial</button>
+        </div>
+        <input type="hidden" name="type" value="buy">
+        <div class="search-fields">
+          <div class="search-field">
+            <label for="s-area">Area</label>
+            <select id="s-area" name="q">
+              <option value="">Any area</option>
+              <option value="Bahria Town Rawalpindi">Bahria Town Rawalpindi</option>
+              <option value="DHA Islamabad">DHA Islamabad</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label for="s-type">Property type</label>
+            <select id="s-type">
+              <option value="">Any type</option>
+              <option>House</option>
+              <option>Villa</option>
+              <option>Apartment</option>
+              <option>Penthouse</option>
+              <option>Plot</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label for="s-budget">Budget</label>
+            <select id="s-budget">
+              <option value="">Any budget</option>
+              <option>Under ₨3 Crore</option>
+              <option>₨3–7 Crore</option>
+              <option>Above ₨7 Crore</option>
+            </select>
+          </div>
+          <div class="search-field search-submit">
+            <button class="btn btn-primary btn-block" type="submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              Search
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!--
+        This row previously showed placeholder counters for years in business,
+        transactions completed and an average review score — three of the nine facts
+        master rule 04 forbids inventing, and the score could never be filled honestly
+        because no genuine reviews exist. Replaced with four proof points that are true
+        today and need no client input. See docs/COPY_DECK.md §3.1.
+      -->
+      <ul class="hero-proof">
+        <li><strong>Bahria Town Rawalpindi &amp; DHA Islamabad</strong><span>Focused coverage</span></li>
+        <li><strong>Properly documented</strong><span>Every transaction</span></li>
+        <li><strong>Site visits arranged</strong><span>See it in person</span></li>
+        <li><strong>Exclusive options</strong><span>Beyond the public listings</span></li>
+      </ul>
+    </div>
+    <div class="scroll-cue"><span class="line"></span>Scroll</div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="about">
+    <div class="container split">
+      <div class="split-media" data-reveal>
+        <img src="assets/images/agent/agent-placeholder.svg" alt="Portrait of Realtor Shamraiz" loading="lazy" width="600" height="700">
+        <!-- Was two invented metrics (years in business, clients served). Master rule 04
+             forbids both. Replaced with the coverage fact, which is verified. -->
+        <div class="split-media-badge">
+          <div><strong>Bahria Town Rawalpindi</strong><span>Service area</span></div>
+          <div><strong>DHA Islamabad</strong><span>Service area</span></div>
+        </div>
+      </div>
+      <div data-reveal>
+        <p class="eyebrow">About Realtor Shamraiz</p>
+        <h2>Two areas. Known properly.</h2>
+        <!-- Bio must come from the client. Do not write a background for a real person. -->
+        <p class="lede text-muted mt-4">[CONTENT REQUIRED] <em>— the agent's real, verified background goes here. Nothing has been written on their behalf.</em></p>
+        <div class="credential-list">
+          <div class="credential-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <div><strong>Focused local coverage</strong><p>Bahria Town Rawalpindi and DHA Islamabad, rather than a map of the whole city.</p></div>
+          </div>
+          <div class="credential-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-3.5 7-10V5l-7-3-7 3v7c0 6.5 7 10 7 10z"/></svg>
+            <div><strong>Properly documented transactions</strong><p>Documentation is verified and explained before you commit, not after.</p></div>
+          </div>
+          <div class="credential-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+            <!-- Third pillar deliberately blank. Do not fill this with a generic claim. -->
+            <div><strong>[CONTENT REQUIRED]</strong><p>[CONTENT REQUIRED] — third service pillar, to be confirmed with the client.</p></div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/about">Read Full Profile</a>
+          <a class="btn btn-outline" href="tel:" data-config-href="phone" data-config-href-type="tel">Request a Call</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FEATURED LISTINGS ============ -->
+  <section id="listings">
+    <div class="container">
+      <div class="section-head center">
+        <p class="eyebrow">Property Discovery</p>
+        <h2>Featured Properties</h2>
+        <p>Luxury designer properties in Bahria Town Rawalpindi and DHA Islamabad. <span class="badge-demo" data-config-flag="demoDataNotice">Sample listings — real inventory pending</span></p>
+      </div>
+      <div class="listing-grid" data-listing-grid="featured"></div>
+      <div class="view-more-wrap">
+        <a class="btn btn-outline" href="/properties">View All Properties</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHY CHOOSE US ============ -->
+  <section style="background:var(--color-bg-alt)">
+    <div class="container">
+      <!-- Each card makes exactly ONE claim, and each claim traces to the client's own
+           words in docs/CLIENT_COPY.md. The previous four cards claimed vetted listings,
+           data-backed negotiation, end-to-end transfer handling and a WhatsApp line —
+           none of which the client has stated. See docs/COPY_DECK.md §3.3. -->
+      <div class="section-head center">
+        <p class="eyebrow">Why Work With Realtor Shamraiz</p>
+        <h2>Four things you can hold us to</h2>
+      </div>
+      <div class="value-grid">
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></div>
+          <h3>Properly Documented</h3>
+          <p>Title, transfer and payment records are checked and explained in plain language — so the paperwork is never the part you have to take on trust.</p>
+        </div>
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M10 21v-6h4v6"/></svg></div>
+          <h3>Designer-Grade Homes</h3>
+          <p>Breathtaking architecture, elegant design and superior quality finishes — properties selected for how they are built, not only where they are.</p>
+        </div>
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+          <h3>Two Areas, In Depth</h3>
+          <p>Coverage is deliberately narrow: Bahria Town Rawalpindi and DHA Islamabad. Depth in two markets beats a thin presence in ten.</p>
+        </div>
+        <div class="value-card" data-reveal>
+          <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>Exclusive Options</h3>
+          <p>Not everything worth seeing is listed publicly. Ask, and exclusive options can be shared with you privately.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section>
+    <div class="container">
+      <!-- Reduced from four invented steps to three that the client's own copy supports.
+           Do NOT re-add offer strategy / negotiation / transfer / handover steps until
+           the client confirms their actual process. See docs/COPY_DECK.md §3.4. -->
+      <div class="section-head center">
+        <p class="eyebrow">Process</p>
+        <h2>Three steps, no surprises</h2>
+      </div>
+      <div class="steps">
+        <div class="step" data-reveal><span class="step-num">01</span><h3>Tell us what you need</h3><p>One call sets the brief: area, budget, timeline, and what the property has to do for you.</p></div>
+        <div class="step" data-reveal><span class="step-num">02</span><h3>See it in person</h3><p>Site visits are arranged for the properties that fit — including exclusive options that are not listed publicly.</p></div>
+        <div class="step" data-reveal><span class="step-num">03</span><h3>Complete on solid paperwork</h3><p>Documentation is verified and walked through with you, so the transaction closes properly.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NEIGHBORHOODS / LOCAL SEO ============ -->
+  <section id="areas" style="background:var(--color-bg-alt)">
+    <div class="container">
+      <div class="section-head center">
+        <p class="eyebrow">Local Expertise</p>
+        <h2>Bahria Town Rawalpindi and DHA Islamabad</h2>
+        <p>Coverage is limited to two of Islamabad's most established addresses — deliberately.</p>
+      </div>
+      <div class="area-grid" id="area-grid"></div>
+    </div>
+  </section>
+
+  <!-- ============ VALUATION / LEAD CTA BAND ============ -->
+  <section id="valuation">
+    <div class="container">
+      <!-- The word denoting no-cost has been REMOVED from this band and its CTA.
+           Objective 05.6 authorises valuation requests as a lead type; it does not
+           authorise a price. Whether valuations are charged, and the realistic
+           turnaround, are both [CONTENT REQUIRED]. Do not re-add it. -->
+      <div class="cta-band" data-reveal>
+        <div>
+          <h3>Considering selling or letting?</h3>
+          <p>Send the property details and Realtor Shamraiz will come back to you on where it currently sits in the Bahria Town Rawalpindi and DHA Islamabad market.</p>
+        </div>
+        <a class="btn btn-primary" href="#contact">Request a Valuation</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TESTIMONIALS ============
+       The three fabricated 5-star reviews previously here have been REMOVED.
+       Master rule 04 forbids inventing reviews, and a "Demo" badge does not make
+       an invented review acceptable on a real business's site.
+
+       This section does not ship until the client supplies genuine, attributable
+       testimonials with permission to publish. See docs/LEAD_GENERATION.md §5.
+       If none are available, DELETE this section rather than filling it.
+  -->
+  <section id="reviews" hidden data-content-required="genuine client testimonials">
+    <div class="container">
+      <div class="section-head center">
+        <p class="eyebrow">Client Reviews</p>
+        <h2>What clients say</h2>
+        <p><span class="badge-demo">[CONTENT REQUIRED] — no genuine testimonials supplied yet</span></p>
+      </div>
+      <p class="text-muted">[CONTENT REQUIRED] — genuine, attributable client testimonials.</p>
+    </div>
+  </section>
+
+  <!-- ============ FAQ (AEO) ============ -->
+  <section id="faq" style="background:var(--color-bg-alt)">
+    <div class="container">
+      <div class="section-head center">
+        <p class="eyebrow">Frequently Asked</p>
+        <h2>Questions, answered plainly</h2>
+      </div>
+      <div style="max-width:760px;margin:0 auto;display:grid;gap:0.8rem" id="faq-list">
+        <!-- Answers below are either client-confirmed or marked [CONTENT REQUIRED].
+             Nothing here is written on the client's behalf. FAQPage schema is
+             withheld until all answers are confirmed — see docs/SEO_STRATEGY.md §4.1. -->
+        <details class="value-card" open>
+          <summary style="cursor:pointer;font-weight:600;font-family:var(--font-display);font-size:1.05rem">What areas does Realtor Shamraiz cover?</summary>
+          <p class="text-muted mt-4">Bahria Town Rawalpindi and DHA Islamabad.</p>
+        </details>
+        <details class="value-card">
+          <summary style="cursor:pointer;font-weight:600;font-family:var(--font-display);font-size:1.05rem">Can I arrange a site visit?</summary>
+          <p class="text-muted mt-4">Yes — site visits can be arranged, and further exclusive options are available on request. Call <a data-config-href="phone" data-config-href-type="tel"><span data-config="phone"></span></a> to book one.</p>
+        </details>
+        <details class="value-card">
+          <summary style="cursor:pointer;font-weight:600;font-family:var(--font-display);font-size:1.05rem">What does "properly documented" mean?</summary>
+          <p class="text-muted mt-4">Title, transfer and payment records are checked and explained to you in plain language before you commit — so the documentation is never the part you have to take on trust.</p>
+        </details>
+        <details class="value-card">
+          <summary style="cursor:pointer;font-weight:600;font-family:var(--font-display);font-size:1.05rem">How do I request a property valuation?</summary>
+          <p class="text-muted mt-4">[CONTENT REQUIRED] — confirm whether valuations are charged and the expected turnaround. Do not describe them as free until the client says so.</p>
+        </details>
+        <details class="value-card">
+          <summary style="cursor:pointer;font-weight:600;font-family:var(--font-display);font-size:1.05rem">What are your hours?</summary>
+          <p class="text-muted mt-4">[CONTENT REQUIRED] — business hours not yet supplied.</p>
+        </details>
+        <details class="value-card">
+          <summary style="cursor:pointer;font-weight:600;font-family:var(--font-display);font-size:1.05rem">Is the assistant on this site a real person?</summary>
+          <p class="text-muted mt-4">No. It is an automated assistant — answers come from a set list of common questions, and it does not understand free-form conversation. For anything else it hands you straight to the team.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT / MAP ============ -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-head center">
+        <p class="eyebrow">Get In Touch</p>
+        <h2>Talk to Realtor Shamraiz</h2>
+        <p>Call either line, or send the details below and you will get a reply.</p>
+      </div>
+      <div class="contact-grid">
+        <div>
+          <form class="contact-info-card" data-lead-form="Hello, I'd like to get in touch through the website contact form.">
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="c-name">Full name <span class="required">*</span></label>
+                <input id="c-name" name="name" data-label="Name" required placeholder="Your name">
+              </div>
+              <div class="form-field">
+                <label for="c-phone">Phone <span class="required">*</span></label>
+                <input id="c-phone" name="phone" data-label="Phone" type="tel" required placeholder="03XX XXXXXXX">
+              </div>
+              <div class="form-field full">
+                <label for="c-interest">I'm interested in</label>
+                <select id="c-interest" name="interest" data-label="Interest">
+                  <option>Buying a property</option>
+                  <option>Selling a property</option>
+                  <option>Renting or letting a property</option>
+                  <option>Investing</option>
+                  <!-- The no-cost variant of this option was removed — the price is unknown. -->
+                  <option>Property valuation</option>
+                  <option>Booking a site visit</option>
+                  <option>Something else</option>
+                </select>
+              </div>
+              <div class="form-field full">
+                <label for="c-message">Message</label>
+                <textarea id="c-message" name="message" data-label="Message" placeholder="Tell us what you're looking for..."></textarea>
+              </div>
+            </div>
+            <p class="form-error" role="alert"></p>
+            <!-- Button and note previously named WhatsApp. No WhatsApp number has been
+                 supplied, and neither phone line can be assumed to carry it, so naming
+                 the channel was a false claim. See docs/COPY_DECK.md §4. -->
+            <button class="btn btn-primary btn-block" type="submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              Send Enquiry
+            </button>
+            <p class="form-note">Nothing you type here is stored on this site. Submitting opens your own messaging app; if that channel is not connected yet you will be given both phone numbers instead.</p>
+          </form>
+        </div>
+        <div style="display:grid;gap:var(--space-3)">
+          <div class="contact-info-card">
+            <div class="contact-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <div><strong>Office</strong><span data-config="officeAddress">Office Address</span></div>
+            </div>
+            <div class="contact-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1.1.4 2.2.8 3.2a2 2 0 0 1-.4 2.1L8.1 10.5a16 16 0 0 0 6 6l1.5-1.4a2 2 0 0 1 2.1-.4c1 .4 2.1.7 3.2.8a2 2 0 0 1 1.1 2.4z"/></svg>
+              <div><strong>Phone</strong><a href="tel:" data-config-href="phone" data-config-href-type="tel" data-config="phone">Phone</a></div>
+            </div>
+            <div class="contact-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 6l8 6 8-6"/></svg>
+              <div><strong>Email</strong><a href="mailto:" data-config-href="email" data-config-href-type="mailto" data-config="email">Email</a></div>
+            </div>
+            <div class="contact-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+              <div><strong>Hours</strong><span data-config="businessHoursDisplay">Hours</span></div>
+            </div>
+            <a class="btn btn-outline btn-block" href="" data-config-href="mapDirectionsUrl" target="_blank" rel="noopener">Get Directions</a>
+          </div>
+          <div class="map-frame">
+            <div class="map-fallback" id="map-fallback">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <p>Map preview will appear once a Google Maps embed URL is added to the site configuration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="final-cta">
+    <div class="container">
+      <p class="eyebrow" style="justify-content:center">Ready When You Are</p>
+      <h2>Book a site visit.</h2>
+      <p>Whether you are buying, selling, letting or investing in Bahria Town Rawalpindi or DHA Islamabad, start with a conversation.</p>
+      <!-- Both client-supplied lines are offered. The primary/secondary order is
+           arbitrary until the client confirms which number to lead with. -->
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">Call <span data-config="phone"></span></a>
+        <a class="btn btn-outline" href="tel:" data-config-href="phoneSecondary" data-config-href-type="tel">Call <span data-config="phoneSecondary"></span></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div data-partial="footer"></div>
+
+<div data-partial="widgets"></div>
+
+<script src="js/config.js"></script>
+<script src="js/partials.js"></script>
+<script src="js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="js/admin-bridge.js"></script>
+<script src="js/listings.js"></script>
+<script src="js/main.js"></script>
+<script src="js/forms.js"></script>
+<script src="js/ai-concierge.js"></script>
+<script>
+  // Render neighborhood/area cards
+  (function () {
+    const grid = document.getElementById("area-grid");
+    if (!grid || typeof AREA_GUIDES === "undefined") return;
+    grid.innerHTML = AREA_GUIDES.map((a) => `
+      <div class="area-card" data-reveal>
+        <img src="${assetUrl(a.image)}" alt="${a.name} neighborhood" loading="lazy" width="400" height="500">
+        <div class="area-card-body"><h3>${a.name}</h3><p>${a.blurb}</p></div>
+      </div>`).join("");
+  })();
+
+  // Search widget tabs -> set hidden type field
+  document.querySelectorAll(".search-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".search-tab").forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      document.querySelector('[data-home-search] input[name="type"]').value = tab.dataset.tab;
+    });
+  });
+</script>
+</body>
+</html>

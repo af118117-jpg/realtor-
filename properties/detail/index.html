@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+  TRAILING-SLASH GUARD — must stay the first thing in <head>.
+  This page is a folder index, so it can be served at BOTH "/properties/" and
+  "/properties". Without the trailing slash the browser resolves every relative
+  path against the PARENT directory, and the stylesheet and scripts 404 — the
+  same failure the master plan already documents for "/admin". Most static
+  hosts 301 the slash on for you; not all local dev servers do. Declaring an
+  explicit <base> removes the dependency on that behaviour entirely.
+  Skipped for URLs that already end in "/" or in a file extension (so file://
+  and "…/index.html" are untouched).
+-->
+<script>
+(function () {
+  var p = window.location.pathname;
+  if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) {
+    var b = document.createElement("base");
+    b.href = window.location.origin + p + "/";
+    document.head.appendChild(b);
+  }
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Details | Realtor Shamraiz</title>
+<meta name="description" content="Full details, photography and specifications for this property in Bahria Town Rawalpindi or DHA Islamabad.">
+<!-- TODO: canonical + og:url need the live domain ([CONTENT REQUIRED] in js/config.js). Do not deploy without them. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Property Details | Realtor Shamraiz">
+<meta property="og:description" content="Full details, photography and specifications for this property in Bahria Town Rawalpindi or DHA Islamabad.">
+<meta property="og:image" content="../../assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet. See js/theme.js. -->
+<script src="../../js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/style.css">
+<meta name="robots" content="noindex">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div data-partial="header"></div>
+<main id="main">
+
+  <!-- Everything inside [data-property-page] is populated by js/property-detail.js
+       from the record matching ?id= in the query string. Markup carries empty
+       slots rather than placeholder prose so a field the data does not supply
+       renders as nothing at all, never as invented text. -->
+  <div data-property-page>
+
+    <section class="page-head property-head">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <span aria-hidden="true">/</span>
+          <a href="/properties">Properties</a>
+          <span aria-hidden="true">/</span>
+          <span data-p-crumb aria-current="page"></span>
+        </nav>
+
+        <div class="property-head-row">
+          <div>
+            <p class="eyebrow"><span data-p-category></span></p>
+            <h1 data-p-title></h1>
+            <p class="property-loc">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+              <span data-p-area></span>
+            </p>
+            <p class="property-flags">
+              <span class="badge badge-status" data-p-status hidden></span>
+              <span class="badge-demo" data-p-demo-flag hidden>Sample listing &mdash; not a real property</span>
+            </p>
+          </div>
+          <div class="property-head-price">
+            <span class="property-price" data-p-price></span>
+            <span class="property-ref">Ref <span data-p-ref></span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-tight">
+      <div class="container">
+        <div class="gallery-grid" data-p-gallery data-lightbox></div>
+        <div class="property-video" data-p-video hidden>
+          <h2 class="property-sub">Property video</h2>
+          <div class="video-frame" data-p-video-mount></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-tight">
+      <div class="container">
+        <div class="property-layout">
+          <div class="property-main">
+
+            <div class="spec-strip" data-p-specs></div>
+
+            <div class="property-block" data-p-description-block hidden>
+              <h2 class="property-sub">About this property</h2>
+              <p class="property-body" data-p-summary></p>
+            </div>
+
+            <div class="property-block" data-p-amenities-block hidden>
+              <h2 class="property-sub">Features &amp; amenities</h2>
+              <ul class="amenity-list" data-p-amenities></ul>
+            </div>
+
+            <div class="property-block" data-p-map-block hidden>
+              <h2 class="property-sub">Location</h2>
+              <div class="map-frame" data-p-map></div>
+            </div>
+
+            <div class="property-block">
+              <h2 class="property-sub">Request a viewing</h2>
+              <form class="contact-info-card" data-lead-form="Hello, I'd like to request a viewing." data-p-viewing-form>
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label for="v-name">Full name <span class="required">*</span></label>
+                    <input id="v-name" name="name" data-label="Name" required placeholder="Your name">
+                  </div>
+                  <div class="form-field">
+                    <label for="v-phone">Phone <span class="required">*</span></label>
+                    <input id="v-phone" name="phone" data-label="Phone" type="tel" required placeholder="03XX XXXXXXX">
+                  </div>
+                  <div class="form-field">
+                    <label for="v-when">Preferred day</label>
+                    <input id="v-when" name="preferred" data-label="Preferred day" type="date">
+                  </div>
+                  <div class="form-field">
+                    <label for="v-time">Preferred time</label>
+                    <select id="v-time" name="time" data-label="Preferred time">
+                      <option>Morning</option><option>Afternoon</option><option>Evening</option>
+                    </select>
+                  </div>
+                  <div class="form-field full">
+                    <label for="v-msg">Anything we should know?</label>
+                    <textarea id="v-msg" name="message" data-label="Message" placeholder="Questions about this property..."></textarea>
+                  </div>
+                  <!-- Carries the property reference into the enquiry so the agent
+                       knows which listing it concerns without the visitor retyping it. -->
+                  <input type="hidden" name="property" data-label="Property" data-p-form-ref>
+                </div>
+                <p class="form-error" role="alert"></p>
+                <button class="btn btn-primary btn-block" type="submit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                  Request this viewing
+                </button>
+                <p class="form-note">Nothing you type here is stored on this site. Submitting opens your own messaging app; if that channel is not connected yet you will be given both phone numbers instead.</p>
+              </form>
+            </div>
+          </div>
+
+          <aside class="property-aside">
+            <div class="agent-card">
+              <div class="agent-card-head">
+                <img src="../../assets/images/agent/agent-placeholder.svg" alt="Realtor Shamraiz" width="64" height="64">
+                <div>
+                  <strong data-config="siteName">Realtor Shamraiz</strong>
+                  <span>Bahria Town Rawalpindi &amp; DHA Islamabad</span>
+                </div>
+              </div>
+              <div class="agent-card-actions">
+                <a class="btn btn-primary btn-block" href="tel:" data-config-href="phone" data-config-href-type="tel">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1.1.4 2.2.8 3.2a2 2 0 0 1-.4 2.1L8.1 10.5a16 16 0 0 0 6 6l1.5-1.4a2 2 0 0 1 2.1-.4c1 .4 2.1.7 3.2.8a2 2 0 0 1 1.1 2.4z"/></svg>
+                  Call <span data-config="phone"></span>
+                </a>
+                <a class="btn btn-ghost btn-block" href="tel:" data-config-href="phoneSecondary" data-config-href-type="tel">Call <span data-config="phoneSecondary"></span></a>
+                <!-- WhatsApp CTA stays out of the DOM until a number is configured;
+                     js/property-detail.js inserts it only when buildWhatsAppLink()
+                     returns a real link. A hidden-but-present button would still be
+                     a claim that the channel exists. -->
+                <div data-p-whatsapp-mount></div>
+                <a class="btn btn-outline btn-block" href="#main" data-p-scroll-to-form>Request a viewing</a>
+              </div>
+              <p class="agent-card-note">Site visits are arranged on request, including exclusive options that are not listed publicly.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-tight" data-p-similar-block hidden>
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">You may also like</p>
+          <h2>Similar properties</h2>
+        </div>
+        <div class="listing-grid" data-p-similar></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Shown instead of everything above when ?id= names no known property. -->
+  <section class="section-tight" data-p-notfound hidden>
+    <div class="container">
+      <div class="empty-state is-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+        <h3>That property is not available</h3>
+        <p>The listing you followed may have been removed or the link may be incomplete.</p>
+        <a class="btn btn-primary" href="/properties">Browse all properties</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="lightbox" aria-hidden="true">
+    <div class="lightbox-img-wrap">
+      <img alt="">
+      <button class="lightbox-close" aria-label="Close image viewer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      <button class="lightbox-prev" aria-label="Previous image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="lightbox-next" aria-label="Next image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+      <p class="lightbox-caption"></p>
+    </div>
+  </div>
+
+</main>
+<div data-partial="footer"></div>
+<div data-partial="widgets"></div>
+
+<script src="../../js/config.js"></script>
+<script src="../../js/partials.js"></script>
+<script src="../../js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="../../js/admin-bridge.js"></script>
+<script src="../../js/listings.js"></script>
+<!-- Before main.js: the gallery and similar-property cards this injects must
+     exist when main.js binds the lightbox and the reveal observer (cf. D-24). -->
+<script src="../../js/property-detail.js"></script>
+<script src="../../js/main.js"></script>
+<script src="../../js/forms.js"></script>
+<script src="../../js/ai-concierge.js"></script>
+</body>
+</html>

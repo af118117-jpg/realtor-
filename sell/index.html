@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+  TRAILING-SLASH GUARD — must stay the first thing in <head>.
+  This page is a folder index, so it can be served at BOTH "/properties/" and
+  "/properties". Without the trailing slash the browser resolves every relative
+  path against the PARENT directory, and the stylesheet and scripts 404 — the
+  same failure the master plan already documents for "/admin". Most static
+  hosts 301 the slash on for you; not all local dev servers do. Declaring an
+  explicit <base> removes the dependency on that behaviour entirely.
+  Skipped for URLs that already end in "/" or in a file extension (so file://
+  and "…/index.html" are untouched).
+-->
+<script>
+(function () {
+  var p = window.location.pathname;
+  if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) {
+    var b = document.createElement("base");
+    b.href = window.location.origin + p + "/";
+    document.head.appendChild(b);
+  }
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sell or Let Your Property | Realtor Shamraiz</title>
+<meta name="description" content="Sell or let your property in Bahria Town Rawalpindi or DHA Islamabad. Send the details and get a view on where it sits in the market.">
+<!-- TODO: canonical + og:url need the live domain ([CONTENT REQUIRED] in js/config.js). Do not deploy without them. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sell or Let Your Property | Realtor Shamraiz">
+<meta property="og:description" content="Sell or let your property in Bahria Town Rawalpindi or DHA Islamabad. Send the details and get a view on where it sits in the market.">
+<meta property="og:image" content="../assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet. See js/theme.js. -->
+<script src="../js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div data-partial="header"></div>
+<main id="main">
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">Selling &amp; letting</p>
+      <h1>Sell or let your property</h1>
+      <p class="lede">Send the property details and Realtor Shamraiz will come back to you on where it
+        currently sits in the Bahria Town Rawalpindi and DHA Islamabad market.</p>
+      <!-- The word denoting no-cost is deliberately absent here and in the CTA.
+           Whether valuations are charged, and the realistic turnaround, are both
+           [CONTENT REQUIRED] (see D-14). Do not reintroduce "free". -->
+      <p class="text-muted"><span class="badge-required">[CONTENT REQUIRED]</span>
+        Valuation fee and turnaround are not yet confirmed, so neither is stated on this page.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <div class="contact-grid">
+        <form class="contact-info-card" data-lead-form="Hello, I'd like a valuation on a property I'm considering selling or letting.">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="s-name">Full name <span class="required">*</span></label>
+              <input id="s-name" name="name" data-label="Name" required placeholder="Your name">
+            </div>
+            <div class="form-field">
+              <label for="s-phone">Phone <span class="required">*</span></label>
+              <input id="s-phone" name="phone" data-label="Phone" type="tel" required placeholder="03XX XXXXXXX">
+            </div>
+            <div class="form-field">
+              <label for="s-intent">I want to</label>
+              <select id="s-intent" name="intent" data-label="Intent"><option>Sell</option><option>Let / rent out</option><option>Not sure yet</option></select>
+            </div>
+            <div class="form-field">
+              <label for="s-locality">Area</label>
+              <select id="s-locality" name="locality" data-label="Area">
+                <option>Bahria Town Rawalpindi</option><option>DHA Islamabad</option><option>Somewhere else</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="s-type">Property type</label>
+              <select id="s-type" name="type" data-label="Property type">
+                <option>House</option><option>Villa</option><option>Apartment</option><option>Penthouse</option>
+                <option>Plot</option><option>Commercial</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="s-size">Approximate size</label>
+              <input id="s-size" name="size" data-label="Size" placeholder="e.g. 1 Kanal, 10 Marla, 2,400 sq ft">
+            </div>
+            <div class="form-field full">
+              <label for="s-notes">Anything else about the property?</label>
+              <textarea id="s-notes" name="message" data-label="Details" placeholder="Condition, age, why you're selling..."></textarea>
+            </div>
+          </div>
+          <p class="form-error" role="alert"></p>
+          <button class="btn btn-primary btn-block" type="submit">Request a Valuation</button>
+          <p class="form-note">Nothing you type here is stored on this site. Submitting opens your own messaging app; if that channel is not connected yet you will be given both phone numbers instead.</p>
+        </form>
+
+        <div style="display:grid;gap:var(--space-3)">
+          <div class="value-card">
+            <h3>What happens next</h3>
+            <p class="text-muted mt-4">You will get a reply on both phone lines. What the valuation covers,
+              and how long it takes, is confirmed with you directly &mdash; this page will not state a
+              turnaround that has not been agreed.</p>
+          </div>
+          <div class="value-card">
+            <h3>Why documentation matters</h3>
+            <p class="text-muted mt-4">Title, transfer and payment records are checked and explained in
+              plain language &mdash; so the paperwork is never the part anyone has to take on trust.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<div data-partial="footer"></div>
+<div data-partial="widgets"></div>
+
+<script src="../js/config.js"></script>
+<script src="../js/partials.js"></script>
+<script src="../js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="../js/admin-bridge.js"></script>
+<script src="../js/listings.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/forms.js"></script>
+<script src="../js/ai-concierge.js"></script>
+</body>
+</html>

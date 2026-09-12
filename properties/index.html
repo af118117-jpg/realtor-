@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+  TRAILING-SLASH GUARD — must stay the first thing in <head>.
+  This page is a folder index, so it can be served at BOTH "/properties/" and
+  "/properties". Without the trailing slash the browser resolves every relative
+  path against the PARENT directory, and the stylesheet and scripts 404 — the
+  same failure the master plan already documents for "/admin". Most static
+  hosts 301 the slash on for you; not all local dev servers do. Declaring an
+  explicit <base> removes the dependency on that behaviour entirely.
+  Skipped for URLs that already end in "/" or in a file extension (so file://
+  and "…/index.html" are untouched).
+-->
+<script>
+(function () {
+  var p = window.location.pathname;
+  if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) {
+    var b = document.createElement("base");
+    b.href = window.location.origin + p + "/";
+    document.head.appendChild(b);
+  }
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Properties for Sale &amp; Rent | Realtor Shamraiz</title>
+<meta name="description" content="Browse luxury properties for sale and rent in Bahria Town Rawalpindi and DHA Islamabad. Filter by area, property type, budget, bedrooms and size.">
+<!-- TODO: canonical + og:url need the live domain ([CONTENT REQUIRED] in js/config.js). Do not deploy without them. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Properties for Sale &amp; Rent | Realtor Shamraiz">
+<meta property="og:description" content="Browse luxury properties for sale and rent in Bahria Town Rawalpindi and DHA Islamabad. Filter by area, property type, budget, bedrooms and size.">
+<meta property="og:image" content="../assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet. See js/theme.js. -->
+<script src="../js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div data-partial="header"></div>
+<main id="main">
+
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">Property Discovery</p>
+      <h1>Properties in Bahria&nbsp;Town Rawalpindi &amp; DHA&nbsp;Islamabad</h1>
+      <p class="lede">Filter by purpose, area, type, budget and size. Every listing links
+        straight through to full details, photography and a direct line to the team.
+        <span class="badge-demo" data-config-flag="demoDataNotice">Sample listings &mdash; real inventory pending</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <!-- Mobile: the filter panel collapses behind this trigger. Desktop: the
+           panel is always visible and this button is hidden by CSS. -->
+      <button type="button" class="btn btn-outline filter-trigger" data-filter-open aria-expanded="false" aria-controls="filter-drawer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Filters <span class="filter-count" data-filter-count hidden></span>
+      </button>
+
+      <div class="results-layout">
+        <div class="filter-drawer" id="filter-drawer">
+          <div class="filter-drawer-inner">
+            <button type="button" class="filter-drawer-close" data-filter-close aria-label="Close filters">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+
+        <form class="filter-panel" data-filter-panel aria-label="Filter properties">
+          <div class="filter-panel-head">
+            <h2>Filters</h2>
+            <button type="button" class="btn-link filter-reset" data-filter-reset>Reset all</button>
+          </div>
+
+          <fieldset class="filter-group">
+            <legend>Purpose</legend>
+            <div class="segmented" role="group">
+              <button type="button" class="segmented-btn active" data-purpose="all">All</button>
+              <button type="button" class="segmented-btn" data-purpose="buy">Buy</button>
+              <button type="button" class="segmented-btn" data-purpose="rent">Rent</button>
+              <button type="button" class="segmented-btn" data-purpose="commercial">Commercial</button>
+            </div>
+          </fieldset>
+
+          <div class="filter-group">
+            <label for="f-keyword">Keyword</label>
+            <input id="f-keyword" type="search" data-listing-search placeholder="Title, area or type">
+          </div>
+
+          <div class="filter-group">
+            <label for="f-city">City</label>
+            <select id="f-city" data-f="city"><option value="">Any city</option></select>
+          </div>
+
+          <div class="filter-group">
+            <label for="f-area">Area / locality</label>
+            <select id="f-area" data-f="locality"><option value="">Any area</option></select>
+          </div>
+
+          <div class="filter-group">
+            <label for="f-category">Property type</label>
+            <select id="f-category" data-f="category"><option value="">Any type</option></select>
+          </div>
+
+          <div class="filter-group">
+            <label for="f-status">Status</label>
+            <select id="f-status" data-f="status"><option value="">Any status</option></select>
+          </div>
+
+          <fieldset class="filter-group">
+            <legend>Price range (PKR)</legend>
+            <div class="filter-row">
+              <input id="f-min" type="number" min="0" step="100000" data-f="priceMin" placeholder="Min" aria-label="Minimum price">
+              <span class="filter-sep" aria-hidden="true">&ndash;</span>
+              <input id="f-max" type="number" min="0" step="100000" data-f="priceMax" placeholder="Max" aria-label="Maximum price">
+            </div>
+            <p class="field-hint" data-price-hint></p>
+          </fieldset>
+
+          <div class="filter-row-2">
+            <div class="filter-group">
+              <label for="f-beds">Bedrooms</label>
+              <select id="f-beds" data-f="beds">
+                <option value="">Any</option><option value="1">1+</option><option value="2">2+</option>
+                <option value="3">3+</option><option value="4">4+</option><option value="5">5+</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="f-baths">Bathrooms</label>
+              <select id="f-baths" data-f="baths">
+                <option value="">Any</option><option value="1">1+</option><option value="2">2+</option>
+                <option value="3">3+</option><option value="4">4+</option><option value="5">5+</option>
+              </select>
+            </div>
+          </div>
+
+          <fieldset class="filter-group">
+            <legend>Property size</legend>
+            <div class="filter-row">
+              <input id="f-size-min" type="number" min="0" data-f="sizeMin" placeholder="Min" aria-label="Minimum size">
+              <span class="filter-sep" aria-hidden="true">&ndash;</span>
+              <input id="f-size-max" type="number" min="0" data-f="sizeMax" placeholder="Max" aria-label="Maximum size">
+              <select id="f-size-unit" data-f="sizeUnit" aria-label="Size unit">
+                <option value="">Any unit</option>
+              </select>
+            </div>
+            <!-- Marla/Kanal/sq ft are not interchangeable without a conversion the
+                 client has not specified, so size is only compared WITHIN a chosen
+                 unit. Picking a unit is therefore required for a size filter to
+                 apply — see the hint rendered below. -->
+            <p class="field-hint">Choose a unit to filter by size &mdash; Marla, Kanal and sq ft are not converted between each other.</p>
+          </fieldset>
+
+          <label class="filter-check">
+            <input type="checkbox" data-f="featured"> Featured properties only
+          </label>
+        </form>
+            <div class="filter-drawer-apply">
+              <button type="button" class="btn btn-primary btn-block" data-filter-close>Show results</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-col">
+          <div class="results-bar">
+            <p class="results-count" data-results-count aria-live="polite">Loading properties&hellip;</p>
+            <div class="results-sort">
+              <label for="f-sort">Sort</label>
+              <select id="f-sort" data-listing-sort>
+                <option value="featured">Featured first</option>
+                <option value="newest">Newest</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+              </select>
+            </div>
+          </div>
+          <div class="listing-grid" data-listing-grid="all"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<div data-partial="footer"></div>
+<div data-partial="widgets"></div>
+
+<script src="../js/config.js"></script>
+<script src="../js/partials.js"></script>
+<script src="../js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="../js/admin-bridge.js"></script>
+<script src="../js/listings.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/forms.js"></script>
+<script src="../js/ai-concierge.js"></script>
+</body>
+</html>

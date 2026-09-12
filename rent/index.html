@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+  TRAILING-SLASH GUARD — must stay the first thing in <head>.
+  This page is a folder index, so it can be served at BOTH "/properties/" and
+  "/properties". Without the trailing slash the browser resolves every relative
+  path against the PARENT directory, and the stylesheet and scripts 404 — the
+  same failure the master plan already documents for "/admin". Most static
+  hosts 301 the slash on for you; not all local dev servers do. Declaring an
+  explicit <base> removes the dependency on that behaviour entirely.
+  Skipped for URLs that already end in "/" or in a file extension (so file://
+  and "…/index.html" are untouched).
+-->
+<script>
+(function () {
+  var p = window.location.pathname;
+  if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) {
+    var b = document.createElement("base");
+    b.href = window.location.origin + p + "/";
+    document.head.appendChild(b);
+  }
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property to Rent in Bahria Town Rawalpindi &amp; DHA Islamabad | Realtor Shamraiz</title>
+<meta name="description" content="Rental properties in Bahria Town Rawalpindi and DHA Islamabad, with properly documented tenancies and viewings arranged on request.">
+<!-- TODO: canonical + og:url need the live domain ([CONTENT REQUIRED] in js/config.js). Do not deploy without them. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Property to Rent in Bahria Town Rawalpindi &amp; DHA Islamabad | Realtor Shamraiz">
+<meta property="og:description" content="Rental properties in Bahria Town Rawalpindi and DHA Islamabad, with properly documented tenancies and viewings arranged on request.">
+<meta property="og:image" content="../assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet. See js/theme.js. -->
+<script src="../js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div data-partial="header"></div>
+<main id="main">
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">Renting</p>
+      <h1>Rent in Bahria&nbsp;Town Rawalpindi or DHA&nbsp;Islamabad</h1>
+      <p class="lede">For tenants looking for a well-finished home, and for landlords who want a
+        tenancy documented properly from the start. Viewings are arranged on request across both
+        service areas.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">Arrange a viewing</a>
+        <a class="btn btn-outline" href="/properties?type=rent">Browse rentals</a>
+      </div>
+    </div>
+  </section>
+  <section class="section-tight">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">To Let</p>
+        <h2>Properties available to rent</h2>
+      </div>
+      <!-- Populated from the same LISTINGS source as /properties, pre-filtered
+           to this page's purpose. Empty state renders automatically if none. -->
+      <div class="listing-grid" data-listing-grid="preset" data-preset-type="rent" data-preset-limit="3"></div>
+      <div class="view-more-wrap">
+        <a class="btn btn-outline" href="/properties?type=rent">See all rent listings</a>
+      </div>
+    </div>
+  </section>
+  <section class="section-tight">
+    <div class="container">
+      <div class="split">
+        <div data-reveal>
+          <p class="eyebrow">For tenants</p>
+          <h2>See it before you commit</h2>
+          <p class="lede text-muted mt-4">Viewings are arranged for the properties that actually fit your
+            brief, and the tenancy paperwork is explained in plain language before you sign.</p>
+          <a class="btn btn-outline mt-4" href="/properties?type=rent">Browse rentals</a>
+        </div>
+        <div data-reveal>
+          <p class="eyebrow">For landlords</p>
+          <h2>Let it properly</h2>
+          <p class="lede text-muted mt-4">Send the property details and Realtor Shamraiz will come back to
+            you on where it currently sits in the Bahria Town Rawalpindi and DHA Islamabad market.</p>
+          <a class="btn btn-outline mt-4" href="/sell">List your property</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section-tight">
+    <div class="container">
+      <div class="cta-band">
+        <div>
+          <h3>Looking to rent, or to let?</h3>
+          <p>Either way, start with a conversation about what the property has to do.</p>
+        </div>
+        <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">Book a Site Visit</a>
+      </div>
+    </div>
+  </section>
+</main>
+<div data-partial="footer"></div>
+<div data-partial="widgets"></div>
+
+<script src="../js/config.js"></script>
+<script src="../js/partials.js"></script>
+<script src="../js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="../js/admin-bridge.js"></script>
+<script src="../js/listings.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/forms.js"></script>
+<script src="../js/ai-concierge.js"></script>
+</body>
+</html>

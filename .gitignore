@@ -1,0 +1,22 @@
+# Dependencies / build output
+node_modules/
+dist/
+.astro/
+
+# Environment
+.env
+.env.*
+
+# Foreign application cache that ended up inside this project tree.
+# Not project content — see plans/PHASE_00_AUDIT.md defect D-06.
+WPS Cloud Files/
+
+# OS / editor artifacts
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.vscode/
+.idea/
+*.swp

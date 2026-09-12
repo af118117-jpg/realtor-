@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title id="editor-title-tag">Add Property | Admin | Realtor Shamraiz</title>
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+<style>html:not(.auth-ok) body{visibility:hidden}</style>
+<script src="js/admin-config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <button type="button" id="admin-menu-toggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1 id="editor-title">Add Property</h1>
+          <p class="admin-topbar-meta" id="editor-status-meta"></p>
+        </div>
+      </div>
+      <div class="admin-topbar-actions">
+        <a href="properties.html" class="btn-admin btn-admin-ghost">← Back</a>
+        <button type="button" class="btn-admin btn-admin-outline" id="btn-preview">Preview</button>
+        <button type="button" class="btn-admin btn-admin-ghost" id="btn-save-draft">Save Draft</button>
+        <button type="button" class="btn-admin btn-admin-primary" id="btn-publish">Publish</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab is-active" data-tab="details" role="tab">Details</button>
+        <button class="admin-tab" data-tab="images" role="tab">Images</button>
+        <button class="admin-tab" data-tab="videos" role="tab">Videos</button>
+        <button class="admin-tab" data-tab="documents" role="tab">Documents</button>
+        <button class="admin-tab" data-tab="preview" role="tab">Preview</button>
+      </div>
+
+      <!-- ---------------- Details ---------------- -->
+      <section class="admin-tab-panel is-active" data-panel="details">
+        <div class="admin-card">
+          <div class="admin-form-grid">
+            <div class="admin-field span-2">
+              <label for="f-title">Property Title</label>
+              <input type="text" id="f-title" placeholder="e.g. 1 Kanal Modern Villa">
+            </div>
+
+            <div class="admin-field">
+              <label for="f-property-id">Property ID</label>
+              <input type="text" id="f-property-id" placeholder="e.g. RS-1024">
+            </div>
+            <div class="admin-field">
+              <label for="f-category">Property Type</label>
+              <select id="f-category"></select>
+            </div>
+
+            <div class="admin-field">
+              <label for="f-listing-type">Sale / Rent</label>
+              <select id="f-listing-type">
+                <option value="sale">Sale</option>
+                <option value="rent">Rent</option>
+              </select>
+            </div>
+            <div class="admin-field">
+              <label for="f-price">Price</label>
+              <input type="number" id="f-price" min="0" placeholder="Leave blank for &quot;Price on application&quot;">
+            </div>
+
+            <div class="admin-field span-2">
+              <label for="f-description">Description</label>
+              <textarea id="f-description" placeholder="Full property description…"></textarea>
+            </div>
+
+            <div class="admin-field">
+              <label for="f-area-value">Area</label>
+              <input type="number" id="f-area-value" min="0">
+            </div>
+            <div class="admin-field">
+              <label for="f-area-unit">Area Unit</label>
+              <input type="text" id="f-area-unit" placeholder="Marla / Kanal / sq ft" list="area-unit-options">
+              <datalist id="area-unit-options">
+                <option value="Marla"><option value="Kanal"><option value="sq ft">
+              </datalist>
+            </div>
+
+            <div class="admin-field">
+              <label for="f-beds">Bedrooms</label>
+              <input type="number" id="f-beds" min="0">
+            </div>
+            <div class="admin-field">
+              <label for="f-baths">Bathrooms</label>
+              <input type="number" id="f-baths" min="0">
+            </div>
+
+            <div class="admin-field">
+              <label for="f-parking">Parking (spaces)</label>
+              <input type="number" id="f-parking" min="0">
+            </div>
+            <div class="admin-field">
+              <label for="f-floors">Floors</label>
+              <input type="number" id="f-floors" min="0">
+            </div>
+
+            <div class="admin-field">
+              <label for="f-year">Construction Year</label>
+              <input type="number" id="f-year" min="1900" max="2100">
+            </div>
+            <div class="admin-field">
+              <label for="f-locality">Location</label>
+              <input type="text" id="f-locality" placeholder="e.g. DHA Islamabad" list="locality-options">
+              <datalist id="locality-options"></datalist>
+            </div>
+
+            <div class="admin-field span-2">
+              <label for="f-address">Address</label>
+              <input type="text" id="f-address" placeholder="Street-level address (optional)">
+            </div>
+            <div class="admin-field span-2">
+              <label for="f-map-url">Google Maps Location (link or embed URL)</label>
+              <input type="url" id="f-map-url" placeholder="https://maps.google.com/…">
+            </div>
+
+            <div class="admin-field span-2">
+              <label>Features / Amenities</label>
+              <div class="admin-checkbox-grid" id="amenities-grid"></div>
+              <div style="display:flex;gap:0.5rem;margin-top:0.6rem">
+                <input type="text" id="f-custom-amenity" placeholder="Add another amenity…" style="max-width:260px">
+                <button type="button" class="btn-admin btn-admin-ghost btn-admin-sm" id="btn-add-amenity">Add</button>
+              </div>
+              <div id="custom-amenities-list" style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem"></div>
+            </div>
+
+            <div class="admin-field span-2">
+              <label style="display:flex;align-items:center;gap:0.5rem;font-weight:500">
+                <input type="checkbox" id="f-featured" style="width:auto"> Feature this property on the homepage
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- Images ---------------- -->
+      <section class="admin-tab-panel" data-panel="images">
+        <div class="admin-card">
+          <div class="admin-card-head"><h2>Property Images</h2></div>
+          <label class="admin-dropzone" id="image-dropzone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+            <div>Click or drag images here to upload</div>
+            <div class="hint">JPG, PNG or WEBP. You can select multiple files.</div>
+            <input type="file" id="image-input" accept="image/*" multiple>
+          </label>
+          <div class="admin-thumb-grid" id="image-thumb-grid"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- Videos ---------------- -->
+      <section class="admin-tab-panel" data-panel="videos">
+        <div class="admin-card">
+          <div class="admin-card-head"><h2>Property Videos</h2></div>
+
+          <label class="admin-dropzone" id="video-dropzone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+            <div>Click or drag a video file here to upload</div>
+            <input type="file" id="video-input" accept="video/*">
+          </label>
+
+          <div style="margin-top:var(--space-3)">
+            <div class="admin-video-url-row">
+              <input type="url" id="f-youtube-url" placeholder="Paste a YouTube URL…">
+              <button type="button" class="btn-admin btn-admin-ghost" id="btn-add-youtube">Add</button>
+            </div>
+            <div class="admin-video-url-row">
+              <input type="url" id="f-vimeo-url" placeholder="Paste a Vimeo URL…">
+              <button type="button" class="btn-admin btn-admin-ghost" id="btn-add-vimeo">Add</button>
+            </div>
+          </div>
+
+          <div class="admin-thumb-grid" id="video-thumb-grid"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- Documents ---------------- -->
+      <section class="admin-tab-panel" data-panel="documents">
+        <div class="admin-card">
+          <div class="admin-card-head"><h2>Documents</h2></div>
+          <p class="hint" style="margin-bottom:var(--space-3)">Optional. Floor plans, brochures, ownership documents. Private — never shown on the public website, kept separate from public media.</p>
+          <div class="admin-field" style="max-width:260px;margin-bottom:var(--space-2)">
+            <label for="f-doc-type">Document type (applies to next upload)</label>
+            <select id="f-doc-type">
+              <option>Property Document</option>
+              <option>Floor Plan</option>
+              <option>Brochure</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <label class="admin-dropzone" id="doc-dropzone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+            <div>Click or drag a file here to upload</div>
+            <input type="file" id="doc-input">
+          </label>
+          <div class="admin-doc-list" id="doc-list"></div>
+        </div>
+      </section>
+
+      <!-- ---------------- Preview ---------------- -->
+      <section class="admin-tab-panel" data-panel="preview">
+        <div class="admin-card">
+          <div class="admin-card-head">
+            <h2>Listing Preview</h2>
+            <span class="hint">This is how the property will look once published. Not saved automatically.</span>
+          </div>
+          <div id="preview-mount"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/listings-data.js"></script>
+<script src="js/admin-db.js"></script>
+<script src="js/admin-store.js"></script>
+<script src="js/admin-ui.js"></script>
+<script src="js/property-editor-page.js"></script>
+</body>
+</html>

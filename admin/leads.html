@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Leads / Inquiries | Admin | Realtor Shamraiz</title>
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+<style>html:not(.auth-ok) body{visibility:hidden}</style>
+<script src="js/admin-config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <button type="button" id="admin-menu-toggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1>Leads / Inquiries</h1>
+          <p class="admin-topbar-meta">Manually logged inquiries — see the note below</p>
+        </div>
+      </div>
+      <div class="admin-topbar-actions">
+        <span class="admin-user-chip" id="admin-current-user"></span>
+        <button type="button" class="btn-admin btn-admin-primary" id="btn-add-lead">+ Log Inquiry</button>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-prototype-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <span>Website contact-form submissions aren't wired into this list yet — <code>docs/SECURITY_PLAN.md</code> deliberately keeps real visitor data out of browser storage until a real backend exists. Use "Log Inquiry" to track leads you receive by phone/WhatsApp/email in the meantime.</span>
+      </div>
+
+      <section class="admin-card">
+        <div class="admin-search-bar">
+          <input type="search" id="lf-search" placeholder="Search name, phone, email…">
+          <select id="lf-status"><option value="">All Statuses</option></select>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Customer</th><th>Phone</th><th>Email</th><th>Property</th><th>Message</th><th>Date</th><th>Status</th><th>Notes</th><th></th></tr>
+            </thead>
+            <tbody id="leads-tbody"></tbody>
+          </table>
+        </div>
+        <div id="leads-empty"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Add / edit lead modal -->
+<div class="admin-modal-overlay" id="lead-modal" hidden>
+  <div class="admin-modal" style="max-width:480px" role="dialog" aria-modal="true">
+    <h2 style="font-size:1.05rem;margin-bottom:var(--space-3)">Log an Inquiry</h2>
+    <div class="admin-form-grid">
+      <div class="admin-field span-2"><label for="lm-name">Customer Name</label><input type="text" id="lm-name"></div>
+      <div class="admin-field"><label for="lm-phone">Phone</label><input type="text" id="lm-phone"></div>
+      <div class="admin-field"><label for="lm-email">Email</label><input type="email" id="lm-email"></div>
+      <div class="admin-field span-2"><label for="lm-property">Property</label><select id="lm-property"></select></div>
+      <div class="admin-field span-2"><label for="lm-message">Message</label><textarea id="lm-message"></textarea></div>
+      <div class="admin-field"><label for="lm-status">Status</label><select id="lm-status"></select></div>
+      <div class="admin-field span-2"><label for="lm-notes">Notes</label><textarea id="lm-notes"></textarea></div>
+    </div>
+    <div class="admin-modal-actions">
+      <button type="button" class="btn-admin btn-admin-ghost" id="lm-cancel">Cancel</button>
+      <button type="button" class="btn-admin btn-admin-primary" id="lm-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/listings-data.js"></script>
+<script src="js/admin-db.js"></script>
+<script src="js/admin-store.js"></script>
+<script src="js/admin-ui.js"></script>
+<script src="js/leads-page.js"></script>
+</body>
+</html>

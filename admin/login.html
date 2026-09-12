@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin Login | Realtor Shamraiz</title>
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-auth-wrap">
+  <button type="button" class="theme-toggle admin-auth-theme-toggle" data-theme-toggle aria-label="Switch to light mode" aria-pressed="false">
+    <svg class="theme-toggle-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <svg class="theme-toggle-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </button>
+  <div class="admin-auth-card">
+    <p class="eyebrow">Realtor Shamraiz</p>
+    <h1 id="auth-title">Admin Log In</h1>
+
+    <div id="auth-error-slot"></div>
+
+    <form id="login-form" hidden>
+      <div class="admin-field">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" name="username" autocomplete="username" required>
+      </div>
+      <div class="admin-field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-admin btn-admin-primary">Log In</button>
+    </form>
+
+    <form id="setup-form" hidden>
+      <div class="admin-field">
+        <label for="setup-username">Choose a username</label>
+        <input type="text" id="setup-username" name="username" autocomplete="username" required minlength="3">
+      </div>
+      <div class="admin-field">
+        <label for="setup-password">Choose a password</label>
+        <input type="password" id="setup-password" name="password" autocomplete="new-password" required minlength="8">
+        <span class="hint">At least 8 characters.</span>
+      </div>
+      <div class="admin-field">
+        <label for="setup-password-confirm">Confirm password</label>
+        <input type="password" id="setup-password-confirm" name="password_confirm" autocomplete="new-password" required minlength="8">
+      </div>
+      <button type="submit" class="btn-admin btn-admin-primary">Create Admin Account</button>
+    </form>
+
+    <p class="admin-auth-note" id="auth-note"></p>
+  </div>
+</div>
+
+<script src="js/admin-config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Already logged in? Skip straight to the dashboard.
+  if (AdminAuth.hasCredentials() && AdminAuth.isAuthenticated()) {
+    window.location.replace("index.html");
+    return;
+  }
+
+  const isFirstRun = !AdminAuth.hasCredentials();
+  const title = document.getElementById("auth-title");
+  const note = document.getElementById("auth-note");
+  const errorSlot = document.getElementById("auth-error-slot");
+  const loginForm = document.getElementById("login-form");
+  const setupForm = document.getElementById("setup-form");
+
+  function showError(msg) {
+    errorSlot.innerHTML = `<div class="admin-auth-error">${msg}</div>`;
+  }
+
+  if (isFirstRun) {
+    title.textContent = "Set Up Admin Access";
+    note.textContent = "No admin account exists in this browser yet. Create one now — it is stored only on this device (see Settings → Security once you're in).";
+    setupForm.hidden = false;
+  } else {
+    title.textContent = "Admin Log In";
+    note.textContent = "Access to this panel is a local, browser-only gate — not a real authentication backend. See Settings → Security after logging in.";
+    loginForm.hidden = false;
+  }
+
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorSlot.innerHTML = "";
+    const username = document.getElementById("login-username").value;
+    const password = document.getElementById("login-password").value;
+    const ok = await AdminAuth.verifyLogin(username, password);
+    if (!ok) {
+      showError("Incorrect username or password.");
+      return;
+    }
+    AdminAuth.startSession(username.trim());
+    window.location.href = "index.html";
+  });
+
+  setupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorSlot.innerHTML = "";
+    const username = document.getElementById("setup-username").value;
+    const password = document.getElementById("setup-password").value;
+    const confirm = document.getElementById("setup-password-confirm").value;
+    if (password !== confirm) {
+      showError("Passwords do not match.");
+      return;
+    }
+    await AdminAuth.setupCredentials(username, password);
+    AdminAuth.startSession(username.trim());
+    window.location.href = "index.html";
+  });
+})();
+</script>
+</body>
+</html>

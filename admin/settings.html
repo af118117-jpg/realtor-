@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Settings | Admin | Realtor Shamraiz</title>
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+<style>html:not(.auth-ok) body{visibility:hidden}</style>
+<script src="js/admin-config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <button type="button" id="admin-menu-toggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div><h1>Settings</h1><p class="admin-topbar-meta">Local to this browser — see the Security tab</p></div>
+      </div>
+      <div class="admin-topbar-actions"><span class="admin-user-chip" id="admin-current-user"></span></div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab is-active" data-tab="profile">Admin Profile</button>
+        <button class="admin-tab" data-tab="business">Business Information</button>
+        <button class="admin-tab" data-tab="catalog">Property Types &amp; Amenities</button>
+        <button class="admin-tab" data-tab="security">Security</button>
+      </div>
+
+      <section class="admin-tab-panel is-active" data-panel="profile">
+        <div class="admin-card">
+          <div class="admin-card-head"><h2>Admin Profile</h2></div>
+          <div class="admin-form-grid">
+            <div class="admin-field"><label for="s-profile-name">Name</label><input type="text" id="s-profile-name"></div>
+            <div class="admin-field"><label for="s-profile-email">Email</label><input type="email" id="s-profile-email"></div>
+          </div>
+          <button type="button" class="btn-admin btn-admin-primary" id="save-profile" style="margin-top:var(--space-3)">Save Profile</button>
+        </div>
+      </section>
+
+      <section class="admin-tab-panel" data-panel="business">
+        <div class="admin-card">
+          <div class="admin-card-head"><h2>Business Information</h2></div>
+          <p class="hint" style="margin-bottom:var(--space-3)">These fields are live for visitors on <strong>this same browser</strong> (synced via local storage) — they override the <code>js/config.js</code> defaults the instant you save. There is no real multi-device database yet, so a visitor on a different device/browser still sees the <code>js/config.js</code> values until a backend connects the two. See Settings → Security.</p>
+          <div class="admin-form-grid">
+            <div class="admin-field span-2"><label for="s-biz-name">Business / Site Name</label><input type="text" id="s-biz-name"></div>
+            <div class="admin-field"><label for="s-biz-phone">Primary Phone</label><input type="text" id="s-biz-phone"></div>
+            <div class="admin-field"><label for="s-biz-phone2">Secondary Phone</label><input type="text" id="s-biz-phone2"></div>
+            <div class="admin-field"><label for="s-biz-email">Email</label><input type="email" id="s-biz-email"></div>
+            <div class="admin-field"><label for="s-biz-currency">Currency Code</label><input type="text" id="s-biz-currency" maxlength="3"></div>
+            <div class="admin-field span-2"><label for="s-biz-address">Office Address</label><input type="text" id="s-biz-address"></div>
+          </div>
+
+          <div class="admin-card" style="margin-top:var(--space-3);background:var(--color-bg-alt)">
+            <div class="admin-card-head"><h2 style="font-size:0.95rem">Social Media</h2></div>
+            <div class="admin-form-grid">
+              <div class="admin-field"><label for="s-social-instagram">Instagram URL</label><input type="url" id="s-social-instagram" placeholder="https://www.instagram.com/…"></div>
+              <div class="admin-field"><label for="s-social-facebook">Facebook URL</label><input type="url" id="s-social-facebook" placeholder="https://www.facebook.com/…"></div>
+              <div class="admin-field"><label for="s-social-tiktok">TikTok URL</label><input type="url" id="s-social-tiktok" placeholder="https://www.tiktok.com/@…"></div>
+              <div class="admin-field"><label for="s-social-youtube">YouTube URL</label><input type="url" id="s-social-youtube" placeholder="https://youtube.com/@…"></div>
+            </div>
+            <p class="hint" style="margin-top:var(--space-2)">Leave a field blank to hide that icon on the site — an empty URL never renders a dead link.</p>
+          </div>
+
+          <div class="admin-card" style="margin-top:var(--space-3);background:var(--color-bg-alt)">
+            <div class="admin-card-head"><h2 style="font-size:0.95rem">Business Hours</h2></div>
+            <div class="admin-form-grid">
+              <div class="admin-field">
+                <label for="s-hours-status">Status</label>
+                <select id="s-hours-status">
+                  <option value="always">Always Open</option>
+                  <option value="custom">Standard Hours</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+              <div class="admin-field" id="s-hours-custom-wrap" hidden>
+                <label for="s-hours-custom">Hours Text</label>
+                <input type="text" id="s-hours-custom" placeholder="e.g. Mon–Sat, 10am–8pm">
+              </div>
+            </div>
+            <p class="hint" style="margin-top:var(--space-2)">Choosing "Always Open" shows exactly that on the site — never a fabricated closing time. Choosing "Standard Hours" shows the text you enter; "Closed" shows "Currently Closed".</p>
+          </div>
+
+          <div class="admin-card" style="margin-top:var(--space-3);background:var(--color-bg-alt)">
+            <div class="admin-card-head"><h2 style="font-size:0.95rem">Logo</h2></div>
+            <div style="display:flex;align-items:center;gap:var(--space-3)">
+              <div id="logo-preview" style="width:64px;height:64px;border-radius:50%;border:1.5px solid var(--color-gold);display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--color-surface)"></div>
+              <label class="btn-admin btn-admin-outline" style="cursor:pointer">Upload Logo<input type="file" id="s-logo-input" accept="image/*" style="display:none"></label>
+            </div>
+          </div>
+          <button type="button" class="btn-admin btn-admin-primary" id="save-business" style="margin-top:var(--space-3)">Save Business Info</button>
+        </div>
+      </section>
+
+      <section class="admin-tab-panel" data-panel="catalog">
+        <div class="admin-two-col">
+          <div class="admin-card">
+            <div class="admin-card-head"><h2>Property Types</h2></div>
+            <div id="types-list" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:var(--space-3)"></div>
+            <div style="display:flex;gap:0.5rem"><input type="text" id="new-type" placeholder="Add a property type…"><button type="button" class="btn-admin btn-admin-ghost" id="add-type">Add</button></div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card-head"><h2>Amenities</h2></div>
+            <div id="amenities-list" style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:var(--space-3)"></div>
+            <div style="display:flex;gap:0.5rem"><input type="text" id="new-amenity" placeholder="Add an amenity…"><button type="button" class="btn-admin btn-admin-ghost" id="add-amenity-setting">Add</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-tab-panel" data-panel="security">
+        <div class="admin-card">
+          <div class="admin-card-head"><h2>Security</h2></div>
+          <div class="admin-prototype-note" style="margin-bottom:var(--space-4)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+            <span>This login is a client-side-only gate (a password hash checked by JavaScript in your browser) — it keeps the panel out of casual reach on a shared computer, but it is <strong>not real authentication</strong>. Anyone with browser DevTools access to this device, or to this site's console if it's ever deployed as-is, can bypass it. Do not deploy this admin panel to a public host until a real backend performs login server-side.</span>
+          </div>
+          <div class="admin-form-grid">
+            <div class="admin-field"><label for="s-current-password">Current Password</label><input type="password" id="s-current-password" autocomplete="current-password"></div>
+            <div></div>
+            <div class="admin-field"><label for="s-new-password">New Password</label><input type="password" id="s-new-password" autocomplete="new-password" minlength="8"></div>
+            <div class="admin-field"><label for="s-new-password-confirm">Confirm New Password</label><input type="password" id="s-new-password-confirm" autocomplete="new-password" minlength="8"></div>
+          </div>
+          <button type="button" class="btn-admin btn-admin-primary" id="save-password" style="margin-top:var(--space-3)">Change Password</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/listings-data.js"></script>
+<script src="js/admin-db.js"></script>
+<script src="js/admin-store.js"></script>
+<script src="js/admin-ui.js"></script>
+<script src="js/settings-page.js"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+  TRAILING-SLASH GUARD — must stay the first thing in <head>.
+  This page is a folder index, so it can be served at BOTH "/properties/" and
+  "/properties". Without the trailing slash the browser resolves every relative
+  path against the PARENT directory, and the stylesheet and scripts 404 — the
+  same failure the master plan already documents for "/admin". Most static
+  hosts 301 the slash on for you; not all local dev servers do. Declaring an
+  explicit <base> removes the dependency on that behaviour entirely.
+  Skipped for URLs that already end in "/" or in a file extension (so file://
+  and "…/index.html" are untouched).
+-->
+<script>
+(function () {
+  var p = window.location.pathname;
+  if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) {
+    var b = document.createElement("base");
+    b.href = window.location.origin + p + "/";
+    document.head.appendChild(b);
+  }
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buy Property in Bahria Town Rawalpindi &amp; DHA Islamabad | Realtor Shamraiz</title>
+<meta name="description" content="Buy luxury designer properties in Bahria Town Rawalpindi and DHA Islamabad with transparent dealings and properly documented transactions.">
+<!-- TODO: canonical + og:url need the live domain ([CONTENT REQUIRED] in js/config.js). Do not deploy without them. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Buy Property in Bahria Town Rawalpindi &amp; DHA Islamabad | Realtor Shamraiz">
+<meta property="og:description" content="Buy luxury designer properties in Bahria Town Rawalpindi and DHA Islamabad with transparent dealings and properly documented transactions.">
+<meta property="og:image" content="../assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet. See js/theme.js. -->
+<script src="../js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div data-partial="header"></div>
+<main id="main">
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">Buying</p>
+      <h1>Buy in Bahria&nbsp;Town Rawalpindi or DHA&nbsp;Islamabad</h1>
+      <p class="lede">Luxury designer properties &mdash; breathtaking architecture, elegant design and
+        superior quality finishes &mdash; backed by complete transparency and properly documented
+        transactions. Site visits are arranged on request, including exclusive options that are not
+        listed publicly.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">Book a Site Visit</a>
+        <a class="btn btn-outline" href="/properties?type=buy">Browse properties for sale</a>
+      </div>
+    </div>
+  </section>
+  <section class="section-tight">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">For Sale</p>
+        <h2>Properties available to buy</h2>
+      </div>
+      <!-- Populated from the same LISTINGS source as /properties, pre-filtered
+           to this page's purpose. Empty state renders automatically if none. -->
+      <div class="listing-grid" data-listing-grid="preset" data-preset-type="buy" data-preset-limit="3"></div>
+      <div class="view-more-wrap">
+        <a class="btn btn-outline" href="/properties?type=buy">See all buy listings</a>
+      </div>
+    </div>
+  </section>
+  <section class="section-tight">
+    <div class="container">
+      <div class="section-head"><p class="eyebrow">Process</p><h2>Three steps, no surprises</h2></div>
+      <div class="steps">
+        <div class="step" data-reveal><span class="step-num">01</span><h3>Tell us what you need</h3><p>One call sets the brief: area, budget, timeline, and what the property has to do for you.</p></div>
+        <div class="step" data-reveal><span class="step-num">02</span><h3>See it in person</h3><p>Site visits are arranged for the properties that fit &mdash; including exclusive options that are not listed publicly.</p></div>
+        <div class="step" data-reveal><span class="step-num">03</span><h3>Complete on solid paperwork</h3><p>Title, transfer and payment records are verified and walked through with you, so the transaction closes properly.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="section-tight">
+    <div class="container">
+      <div class="cta-band">
+        <div>
+          <h3>Ready to see something in person?</h3>
+          <p>Call either line and the brief can be set in one conversation.</p>
+        </div>
+        <a class="btn btn-primary" href="tel:" data-config-href="phone" data-config-href-type="tel">Book a Site Visit</a>
+      </div>
+    </div>
+  </section>
+</main>
+<div data-partial="footer"></div>
+<div data-partial="widgets"></div>
+
+<script src="../js/config.js"></script>
+<script src="../js/partials.js"></script>
+<script src="../js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="../js/admin-bridge.js"></script>
+<script src="../js/listings.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/forms.js"></script>
+<script src="../js/ai-concierge.js"></script>
+</body>
+</html>

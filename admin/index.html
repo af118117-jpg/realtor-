@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard | Admin | Realtor Shamraiz</title>
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+<style>html:not(.auth-ok) body{visibility:hidden}</style>
+<script src="js/admin-config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <button type="button" id="admin-menu-toggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1>Dashboard</h1>
+          <p class="admin-topbar-meta">Overview of properties and inquiries</p>
+        </div>
+      </div>
+      <div class="admin-topbar-actions">
+        <span class="admin-user-chip" id="admin-current-user"></span>
+        <a href="property-editor.html" class="btn-admin btn-admin-primary">+ Add Property</a>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <div class="admin-prototype-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <span>Prototype mode: this panel stores data locally in your browser only (no backend yet). Property edits here do not change the live public website. See Settings for details.</span>
+      </div>
+
+      <div class="admin-stat-grid" id="dashboard-stats"></div>
+
+      <div class="admin-two-col">
+        <section class="admin-card">
+          <div class="admin-card-head">
+            <h2>Recent Properties</h2>
+            <a href="properties.html" class="btn-admin btn-admin-ghost btn-admin-sm">View All</a>
+          </div>
+          <div id="recent-properties"></div>
+        </section>
+
+        <section class="admin-card">
+          <div class="admin-card-head">
+            <h2>Recent Inquiries</h2>
+            <a href="leads.html" class="btn-admin btn-admin-ghost btn-admin-sm">View All</a>
+          </div>
+          <div id="recent-leads"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/listings-data.js"></script>
+<script src="js/admin-db.js"></script>
+<script src="js/admin-store.js"></script>
+<script src="js/admin-ui.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

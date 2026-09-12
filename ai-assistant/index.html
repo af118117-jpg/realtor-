@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--
+  TRAILING-SLASH GUARD — must stay the first thing in <head>.
+  This page is a folder index, so it can be served at BOTH "/properties/" and
+  "/properties". Without the trailing slash the browser resolves every relative
+  path against the PARENT directory, and the stylesheet and scripts 404 — the
+  same failure the master plan already documents for "/admin". Most static
+  hosts 301 the slash on for you; not all local dev servers do. Declaring an
+  explicit <base> removes the dependency on that behaviour entirely.
+  Skipped for URLs that already end in "/" or in a file extension (so file://
+  and "…/index.html" are untouched).
+-->
+<script>
+(function () {
+  var p = window.location.pathname;
+  if (!/\/$/.test(p) && !/\.[a-z0-9]+$/i.test(p)) {
+    var b = document.createElement("base");
+    b.href = window.location.origin + p + "/";
+    document.head.appendChild(b);
+  }
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Assistant | Realtor Shamraiz</title>
+<meta name="description" content="An automated assistant that answers common questions about buying, selling and renting property in Bahria Town Rawalpindi and DHA Islamabad.">
+<!-- TODO: canonical + og:url need the live domain ([CONTENT REQUIRED] in js/config.js). Do not deploy without them. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI Assistant | Realtor Shamraiz">
+<meta property="og:description" content="An automated assistant that answers common questions about buying, selling and renting property in Bahria Town Rawalpindi and DHA Islamabad.">
+<meta property="og:image" content="../assets/images/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:,">
+<!-- Sets data-theme on <html> before first paint — must stay before the stylesheet. See js/theme.js. -->
+<script src="../js/theme.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div data-partial="header"></div>
+<main id="main">
+  <section class="page-head">
+    <div class="container">
+      <p class="eyebrow">AI Assistant</p>
+      <h1>Ask the automated assistant</h1>
+      <p class="lede">It answers a short list of common questions about buying, selling and renting in
+        Bahria Town Rawalpindi and DHA Islamabad, and hands you to the team for anything else.</p>
+      <div class="alert alert-warning mt-4" style="max-width:70ch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <div><strong>This is not a live person.</strong>
+          It is an automated assistant. Answers come from a set list of common questions &mdash;
+          it does not understand free-form conversation, and it cannot quote prices or confirm
+          availability. For anything specific, it will pass you straight to the team.</div>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-primary" data-open-assistant>Start the assistant</button>
+        <a class="btn btn-outline" href="tel:" data-config-href="phone" data-config-href-type="tel">Speak to a person instead</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container">
+      <div class="section-head"><p class="eyebrow">What it can help with</p><h2>Where it is useful</h2></div>
+      <div class="value-grid">
+        <div class="value-card"><h3>Narrowing a search</h3><p>Area, budget and property type, then a handoff to the team with your brief attached.</p></div>
+        <div class="value-card"><h3>Common questions</h3><p>Coverage areas, how site visits work, and what &ldquo;properly documented&rdquo; means in practice.</p></div>
+        <div class="value-card"><h3>Getting to a person</h3><p>Every path ends with a direct line to the team &mdash; that is the point of it.</p></div>
+        <div class="value-card"><h3>What it will not do</h3><p>It will not quote a price, confirm availability, or answer questions it has no verified answer for.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+<div data-partial="footer"></div>
+<div data-partial="widgets"></div>
+
+<script src="../js/config.js"></script>
+<script src="../js/partials.js"></script>
+<script src="../js/listings-data.js"></script>
+<!-- Publishes properties added in the admin panel (same browser only — see the file header). -->
+<script src="../js/admin-bridge.js"></script>
+<script src="../js/listings.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/forms.js"></script>
+<script src="../js/ai-concierge.js"></script>
+</body>
+</html>

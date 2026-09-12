@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Properties | Admin | Realtor Shamraiz</title>
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+<style>html:not(.auth-ok) body{visibility:hidden}</style>
+<script src="js/admin-config.js"></script>
+<script src="js/admin-auth.js"></script>
+<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+</head>
+<body class="admin-body">
+
+<div class="admin-shell">
+  <aside class="admin-sidebar" id="admin-sidebar"></aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <button type="button" id="admin-menu-toggle" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1>Properties</h1>
+          <p class="admin-topbar-meta" id="properties-count-meta"></p>
+        </div>
+      </div>
+      <div class="admin-topbar-actions">
+        <span class="admin-user-chip" id="admin-current-user"></span>
+        <a href="property-editor.html" class="btn-admin btn-admin-primary">+ Add Property</a>
+      </div>
+    </header>
+
+    <main class="admin-content">
+      <section class="admin-card">
+        <div class="admin-search-bar">
+          <input type="search" id="pf-search" placeholder="Search title, ID, location…">
+          <select id="pf-status">
+            <option value="">All Statuses</option>
+          </select>
+          <select id="pf-type">
+            <option value="">All Types</option>
+          </select>
+          <select id="pf-listing-type">
+            <option value="">Sale &amp; Rent</option>
+            <option value="sale">Sale</option>
+            <option value="rent">Rent</option>
+          </select>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Image</th><th>Property ID</th><th>Title</th><th>Type</th><th>Sale/Rent</th>
+                <th>Price</th><th>Location</th><th>Status</th><th>Date Added</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="properties-tbody"></tbody>
+          </table>
+        </div>
+        <div id="properties-empty"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/listings-data.js"></script>
+<script src="js/admin-db.js"></script>
+<script src="js/admin-store.js"></script>
+<script src="js/admin-ui.js"></script>
+<script src="js/properties-page.js"></script>
+</body>
+</html>
