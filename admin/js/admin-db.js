@@ -1,93 +1,91 @@
 /**
- * Admin Panel — IndexedDB wrapper for binary media (images/videos/documents).
+ * Admin Panel — media store (images/videos/documents).
  * ------------------------------------------------------------------------
- * Binary files are kept out of localStorage (small quota, synchronous API —
- * unsuitable for photos/video) and out of the public site entirely. This
- * store is admin-only, local to this browser, per docs/DATA_MODEL.md's
- * existing localStorage-only pattern for non-personal client-side state.
+ * Files now live on the server (server/storage/, served through the API)
+ * instead of this browser's IndexedDB, so an upload made on one device is
+ * visible on every other one. The function names and shapes are unchanged so
+ * existing pages keep working — the one behavioural difference is that
+ * `objectUrlFor()` returns an API URL rather than a blob: URL, which every
+ * <img>/<video> src binding handles identically.
+ *
+ * EVERY FUNCTION HERE IS ASYNC (objectUrlFor stays synchronous).
  */
 
 const AdminDB = (function () {
   "use strict";
 
-  let dbPromise = null;
-
-  function open() {
-    if (dbPromise) return dbPromise;
-    dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(ADMIN_CONFIG.db.name, ADMIN_CONFIG.db.version);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains(ADMIN_CONFIG.db.store)) {
-          const store = db.createObjectStore(ADMIN_CONFIG.db.store, { keyPath: "id" });
-          store.createIndex("propertyId", "propertyId", { unique: false });
-          store.createIndex("kind", "kind", { unique: false });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-    return dbPromise;
-  }
-
-  function tx(mode) {
-    return open().then((db) => db.transaction(ADMIN_CONFIG.db.store, mode).objectStore(ADMIN_CONFIG.db.store));
-  }
-
-  function genId() {
-    return "media-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
-  }
+  const API = ADMIN_CONFIG.apiBase;
 
   /**
-   * Saves a File/Blob. record = { kind: 'image'|'video'|'document', name, mimeType,
-   * size, blob, propertyId, isPrivate }. Returns the generated media id.
+   * Uploads a File/Blob. Accepts the same record shape as before —
+   * { kind, name, mimeType, size, blob, propertyId, isPrivate } — though the
+   * server derives kind/mimeType/size from the file itself, and marks
+   * documents private automatically. Returns the generated media id.
    */
   async function put(record) {
-    const store = await tx("readwrite");
-    const id = record.id || genId();
-    return new Promise((resolve, reject) => {
-      const req = store.put({ ...record, id, createdAt: record.createdAt || new Date().toISOString() });
-      req.onsuccess = () => resolve(id);
-      req.onerror = () => reject(req.error);
+    const form = new FormData();
+    const filename = record.name || "upload";
+    form.append("file", record.blob, filename);
+
+    const res = await fetch(`${API}/media`, {
+      method: "POST",
+      headers: { "X-Admin-Request": "1" },
+      body: form, // no Content-Type — the browser sets the multipart boundary
+      credentials: "include",
     });
+
+    if (res.status === 401) {
+      location.replace("login.html");
+      throw new Error("Not authenticated");
+    }
+    if (!res.ok) {
+      let message = `Upload failed (${res.status})`;
+      try {
+        const body = await res.json();
+        if (body && body.error) message = body.error;
+      } catch {
+        /* not JSON */
+      }
+      throw new Error(message);
+    }
+
+    const media = await res.json();
+    return media.id;
   }
 
   async function get(id) {
-    const store = await tx("readonly");
-    return new Promise((resolve, reject) => {
-      const req = store.get(id);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
-    });
+    if (!id) return null;
+    try {
+      return await AdminStore.apiFetch(`/media/${encodeURIComponent(id)}`);
+    } catch (err) {
+      if (err.status === 404) return null;
+      throw err;
+    }
   }
 
   async function remove(id) {
-    const store = await tx("readwrite");
-    return new Promise((resolve, reject) => {
-      const req = store.delete(id);
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
+    await AdminStore.apiFetch(`/media/${encodeURIComponent(id)}`, { method: "DELETE" });
   }
 
   async function all() {
-    const store = await tx("readonly");
-    return new Promise((resolve, reject) => {
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => reject(req.error);
-    });
+    return AdminStore.apiFetch("/media");
   }
 
-  // In-memory cache of created object URLs so we revoke rather than leak them.
-  const urlCache = new Map();
-  function objectUrlFor(mediaRecord) {
-    if (!mediaRecord || !mediaRecord.blob) return null;
-    if (urlCache.has(mediaRecord.id)) return urlCache.get(mediaRecord.id);
-    const url = URL.createObjectURL(mediaRecord.blob);
-    urlCache.set(mediaRecord.id, url);
-    return url;
+  /** Which properties (if any) still reference this file. Used to warn before
+   * a delete — the check is now authoritative because the server owns it. */
+  async function references(id) {
+    const res = await AdminStore.apiFetch(`/media/${encodeURIComponent(id)}/references`);
+    return (res && res.properties) || [];
   }
 
-  return { put, get, remove, all, objectUrlFor };
+  /** A URL the browser can load the file from. Accepts a media record (as
+   * before) or a bare media id. */
+  function objectUrlFor(mediaRecordOrId) {
+    if (!mediaRecordOrId) return null;
+    const id = typeof mediaRecordOrId === "string" ? mediaRecordOrId : mediaRecordOrId.id;
+    if (!id) return null;
+    return `${API}/media/${encodeURIComponent(id)}/file`;
+  }
+
+  return { put, get, remove, all, references, objectUrlFor };
 })();

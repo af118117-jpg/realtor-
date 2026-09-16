@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: realtor_shamraiz
+    ports:
+      - "5432:5432"
+    volumes:
+      - rs_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/realtor_shamraiz?schema=public
+      NODE_ENV: production
+      API_PORT: 4000
+      CORS_ORIGINS: http://localhost:5273
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+    ports:
+      - "4000:4000"
+    volumes:
+      - rs_media_storage:/app/storage
+
+volumes:
+  rs_postgres_data:
+  rs_media_storage:

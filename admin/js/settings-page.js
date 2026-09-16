@@ -1,12 +1,26 @@
-(function () {
+// Async because settings are now fetched from the API before the form can be
+// populated, and every save is a network write.
+(async function () {
   "use strict";
 
-  AdminStore.seedIfEmpty();
   AdminUI.mountPage("settings");
 
   function $(id) { return document.getElementById(id); }
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  /** Every save goes through here so a failed write always surfaces instead
+   * of silently leaving the form showing values the server never stored. */
+  async function save(patch, successMessage) {
+    try {
+      const updated = await AdminStore.saveSettings(patch);
+      if (successMessage) AdminUI.toast(successMessage, "success");
+      return updated;
+    } catch (err) {
+      AdminUI.toast(err.message || "Could not save settings.", "error");
+      return null;
+    }
   }
 
   /* --------------------------------- Tabs --------------------------------- */
@@ -18,12 +32,15 @@
   });
 
   /* -------------------------------- Profile -------------------------------- */
-  let settings = AdminStore.getSettings();
+  let settings = await AdminStore.getSettings();
   $("s-profile-name").value = settings.profile?.name || "";
   $("s-profile-email").value = settings.profile?.email || "";
-  $("save-profile").addEventListener("click", () => {
-    settings = AdminStore.saveSettings({ profile: { name: $("s-profile-name").value.trim(), email: $("s-profile-email").value.trim() } });
-    AdminUI.toast("Profile saved.", "success");
+  $("save-profile").addEventListener("click", async () => {
+    const updated = await save(
+      { profile: { name: $("s-profile-name").value.trim(), email: $("s-profile-email").value.trim() } },
+      "Profile saved.",
+    );
+    if (updated) settings = updated;
   });
 
   /* -------------------------------- Business -------------------------------- */
@@ -48,29 +65,28 @@
   syncHoursCustomVisibility();
   hoursStatusEl.addEventListener("change", syncHoursCustomVisibility);
 
-  async function renderLogo() {
+  function renderLogo() {
     const preview = $("logo-preview");
-    if (settings.logoMediaId) {
-      const rec = await AdminDB.get(settings.logoMediaId);
-      const url = AdminDB.objectUrlFor(rec);
-      preview.innerHTML = url ? `<img src="${url}" alt="Logo" style="width:100%;height:100%;object-fit:cover">` : "RS";
-    } else {
-      preview.textContent = "RS";
-    }
+    const url = settings.logoMediaId ? AdminDB.objectUrlFor(settings.logoMediaId) : null;
+    preview.innerHTML = url ? `<img src="${url}" alt="Logo" style="width:100%;height:100%;object-fit:cover">` : "RS";
   }
   renderLogo();
 
   $("s-logo-input").addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const mediaId = await AdminDB.put({ id: "admin-logo", kind: "image", name: file.name, mimeType: file.type, size: file.size, blob: file });
-    settings = AdminStore.saveSettings({ logoMediaId: mediaId });
-    AdminUI.toast("Logo uploaded.", "success");
-    renderLogo();
+    try {
+      const mediaId = await AdminDB.put({ kind: "image", name: file.name, mimeType: file.type, size: file.size, blob: file });
+      const updated = await save({ logoMediaId: mediaId }, "Logo uploaded.");
+      if (updated) settings = updated;
+      renderLogo();
+    } catch (err) {
+      AdminUI.toast(err.message || "Logo upload failed.", "error");
+    }
   });
 
-  $("save-business").addEventListener("click", () => {
-    settings = AdminStore.saveSettings({
+  $("save-business").addEventListener("click", async () => {
+    const updated = await save({
       business: {
         siteName: $("s-biz-name").value.trim(),
         phone: $("s-biz-phone").value.trim(),
@@ -89,8 +105,8 @@
         },
       },
       currency: $("s-biz-currency").value.trim().toUpperCase(),
-    });
-    AdminUI.toast("Business information saved.", "success");
+    }, "Business information saved.");
+    if (updated) settings = updated;
   });
 
   /* -------------------------------- Catalog -------------------------------- */
@@ -104,41 +120,43 @@
   }
 
   function renderTypes() {
-    renderChips("types-list", settings.propertyTypes || [], (i) => {
+    renderChips("types-list", settings.propertyTypes || [], async (i) => {
       const next = [...settings.propertyTypes];
       next.splice(i, 1);
-      settings = AdminStore.saveSettings({ propertyTypes: next });
+      const updated = await save({ propertyTypes: next });
+      if (updated) settings = updated;
       renderTypes();
     });
   }
   function renderAmenities() {
-    renderChips("amenities-list", settings.amenities || [], (i) => {
+    renderChips("amenities-list", settings.amenities || [], async (i) => {
       const next = [...settings.amenities];
       next.splice(i, 1);
-      settings = AdminStore.saveSettings({ amenities: next });
+      const updated = await save({ amenities: next });
+      if (updated) settings = updated;
       renderAmenities();
     });
   }
   renderTypes();
   renderAmenities();
 
-  $("add-type").addEventListener("click", () => {
+  $("add-type").addEventListener("click", async () => {
     const input = $("new-type");
     const val = input.value.trim();
     if (val && !(settings.propertyTypes || []).includes(val)) {
-      settings = AdminStore.saveSettings({ propertyTypes: [...(settings.propertyTypes || []), val] });
+      const updated = await save({ propertyTypes: [...(settings.propertyTypes || []), val] }, "Property type added.");
+      if (updated) settings = updated;
       renderTypes();
-      AdminUI.toast("Property type added.", "success");
     }
     input.value = "";
   });
-  $("add-amenity-setting").addEventListener("click", () => {
+  $("add-amenity-setting").addEventListener("click", async () => {
     const input = $("new-amenity");
     const val = input.value.trim();
     if (val && !(settings.amenities || []).includes(val)) {
-      settings = AdminStore.saveSettings({ amenities: [...(settings.amenities || []), val] });
+      const updated = await save({ amenities: [...(settings.amenities || []), val] }, "Amenity added.");
+      if (updated) settings = updated;
       renderAmenities();
-      AdminUI.toast("Amenity added.", "success");
     }
     input.value = "";
   });
@@ -148,7 +166,7 @@
     const current = $("s-current-password").value;
     const next = $("s-new-password").value;
     const confirm = $("s-new-password-confirm").value;
-    if (next.length < 8) { AdminUI.toast("New password must be at least 8 characters.", "error"); return; }
+    if (next.length < 12) { AdminUI.toast("New password must be at least 12 characters.", "error"); return; }
     if (next !== confirm) { AdminUI.toast("New passwords do not match.", "error"); return; }
     const ok = await AdminAuth.changePassword(current, next);
     if (!ok) { AdminUI.toast("Current password is incorrect.", "error"); return; }

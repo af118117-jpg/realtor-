@@ -11,7 +11,7 @@
 <style>html:not(.auth-ok) body{visibility:hidden}</style>
 <script src="js/admin-config.js"></script>
 <script src="js/admin-auth.js"></script>
-<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+<script>AdminAuth.requireAuth().then(function (ok) { if (ok) document.documentElement.classList.add("auth-ok"); });</script>
 </head>
 <body class="admin-body">
 

@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  AdminStore.seedIfEmpty();
   AdminUI.mountPage("leads");
 
   const searchEl = document.getElementById("lf-search");
@@ -9,18 +8,20 @@
   const tbody = document.getElementById("leads-tbody");
   const emptyEl = document.getElementById("leads-empty");
   const modal = document.getElementById("lead-modal");
+  const propertySelect = document.getElementById("lm-property");
 
   statusEl.innerHTML += ADMIN_CONFIG.leadStatuses.map((s) => `<option value="${s}">${ADMIN_CONFIG.leadStatusLabels[s]}</option>`).join("");
   document.getElementById("lm-status").innerHTML = ADMIN_CONFIG.leadStatuses.map((s) => `<option value="${s}">${ADMIN_CONFIG.leadStatusLabels[s]}</option>`).join("");
-  const propertySelect = document.getElementById("lm-property");
-  propertySelect.innerHTML = `<option value="">— None —</option>` +
-    AdminStore.listProperties().map((p) => `<option value="${p.id}">${escapeHtml(p.title || p.propertyId || p.id)}</option>`).join("");
 
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
   let editingLeadId = null;
+  // Last lists fetched from the API, so row handlers and the property-name
+  // column can resolve without extra round-trips.
+  let leadCache = [];
+  let propertyCache = [];
 
   function matchesFilters(l) {
     const q = searchEl.value.trim().toLowerCase();
@@ -30,12 +31,27 @@
   }
 
   function propertyLabel(id) {
-    const p = AdminStore.getProperty(id);
+    const p = propertyCache.find((x) => x.id === id);
     return p ? (p.title || p.propertyId || "—") : "—";
   }
 
-  function render() {
-    const all = AdminStore.listLeads().filter(matchesFilters).sort((a, b) => new Date(b.date) - new Date(a.date));
+  let renderToken = 0;
+
+  async function render() {
+    const token = ++renderToken;
+    let leads;
+    try {
+      leads = await AdminStore.listLeads();
+    } catch (err) {
+      if (token !== renderToken) return;
+      tbody.innerHTML = "";
+      emptyEl.innerHTML = `<div class="admin-empty">Could not load inquiries: ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    if (token !== renderToken) return;
+    leadCache = leads;
+
+    const all = leads.filter(matchesFilters).sort((a, b) => new Date(b.date) - new Date(a.date));
     if (!all.length) {
       tbody.innerHTML = "";
       emptyEl.innerHTML = `<div class="admin-empty">No inquiries logged yet. Click "Log Inquiry" to add one.</div>`;
@@ -83,7 +99,7 @@
   document.getElementById("lm-cancel").addEventListener("click", closeModal);
   modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
 
-  document.getElementById("lm-save").addEventListener("click", () => {
+  document.getElementById("lm-save").addEventListener("click", async () => {
     const name = document.getElementById("lm-name").value.trim();
     if (!name) { AdminUI.toast("Please enter a customer name.", "error"); return; }
     const payload = {
@@ -96,11 +112,14 @@
       notes: document.getElementById("lm-notes").value.trim(),
     };
     if (editingLeadId) payload.id = editingLeadId;
-    else payload.date = new Date().toISOString();
-    AdminStore.saveLead(payload);
-    AdminUI.toast("Inquiry saved.", "success");
-    closeModal();
-    render();
+    try {
+      await AdminStore.saveLead(payload);
+      AdminUI.toast("Inquiry saved.", "success");
+      closeModal();
+      await render();
+    } catch (err) {
+      AdminUI.toast(err.message || "Could not save this inquiry.", "error");
+    }
   });
 
   tbody.addEventListener("click", async (e) => {
@@ -108,22 +127,41 @@
     if (!row) return;
     const id = row.dataset.id;
     if (e.target.closest("[data-lead-edit]")) {
-      openModal(AdminStore.getLead(id));
+      openModal(leadCache.find((l) => l.id === id) || null);
     } else if (e.target.closest("[data-lead-delete]")) {
       const ok = await AdminUI.confirmDialog("Delete this inquiry?", { confirmLabel: "Delete", danger: true });
-      if (ok) { AdminStore.deleteLead(id); AdminUI.toast("Inquiry deleted.", "success"); render(); }
+      if (ok) {
+        try {
+          await AdminStore.deleteLead(id);
+          AdminUI.toast("Inquiry deleted.", "success");
+          await render();
+        } catch (err) {
+          AdminUI.toast(err.message || "Could not delete this inquiry.", "error");
+        }
+      }
     }
   });
 
-  tbody.addEventListener("change", (e) => {
+  tbody.addEventListener("change", async (e) => {
     const select = e.target.closest("select[data-lead-status]");
     if (!select) return;
     const id = select.closest("tr").dataset.id;
-    AdminStore.saveLead({ id, status: select.value });
-    AdminUI.toast("Status updated.", "success");
+    try {
+      await AdminStore.saveLead({ id, status: select.value });
+      AdminUI.toast("Status updated.", "success");
+    } catch (err) {
+      AdminUI.toast(err.message || "Could not update the status.", "error");
+    }
   });
 
   [searchEl, statusEl].forEach((el) => el.addEventListener("input", render));
 
-  render();
+  async function bootstrap() {
+    propertyCache = await AdminStore.listProperties();
+    propertySelect.innerHTML = `<option value="">— None —</option>` +
+      propertyCache.map((p) => `<option value="${p.id}">${escapeHtml(p.title || p.propertyId || p.id)}</option>`).join("");
+    await render();
+  }
+
+  bootstrap();
 })();

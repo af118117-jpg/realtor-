@@ -148,6 +148,20 @@ sticky elements not obscuring content.
 | Structured data | Google Rich Results Test | Zero errors |
 | Dependency audit | `npm audit` | Zero high/critical |
 | Content integrity | Custom grep script (§2) | Manual sign-off |
+| Backend test suite | `npm test` in `server/` (Jest + Supertest, real PostgreSQL) | All green |
+| Backend type safety | `npx tsc --noEmit` in `server/` | Zero errors |
+| API uptime | `GET /healthz` (verifies DB connectivity) | 200 before sign-off, monitored after launch |
+
+### 5a. Backend test coverage (added 2026-09-13)
+
+`server/tests/` — run with `npm test`, which applies migrations to the test
+database first (`DATABASE_URL_TEST`, never the development one).
+
+| Layer | Covers |
+|---|---|
+| Unit | Settings deep-merge, public-listing mapping (slug/type/status), JWT sign/verify, bcrypt round-trip, media MIME + filename sanitization (including `../` traversal attempts), honeypot/timing spam verdict |
+| Integration | Every module's routes end-to-end: auth (setup → login → `/me` → 401 without a cookie → CSRF header required), properties CRUD + status + duplicate, media upload/serve/references/cascade-delete + private-document gating, leads CRUD + filtering, settings merge, public endpoints (active-only listings, spam handling, consent required) |
+| E2E smoke | One realistic walk: setup → upload → publish → public visibility → public lead → admin sees it → media delete → logout |
 
 ## 6. Regression protocol
 

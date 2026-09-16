@@ -11,7 +11,7 @@
 <style>html:not(.auth-ok) body{visibility:hidden}</style>
 <script src="js/admin-config.js"></script>
 <script src="js/admin-auth.js"></script>
-<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+<script>AdminAuth.requireAuth().then(function (ok) { if (ok) document.documentElement.classList.add("auth-ok"); });</script>
 </head>
 <body class="admin-body">
 
@@ -38,7 +38,7 @@
     <main class="admin-content">
       <div class="admin-prototype-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
-        <span>Website contact-form submissions aren't wired into this list yet — <code>docs/SECURITY_PLAN.md</code> deliberately keeps real visitor data out of browser storage until a real backend exists. Use "Log Inquiry" to track leads you receive by phone/WhatsApp/email in the meantime.</span>
+        <span>Contact-form submissions from the website arrive here automatically. Use "Log Inquiry" to also record leads that reach you by phone, WhatsApp or email.</span>
       </div>
 
       <section class="admin-card">

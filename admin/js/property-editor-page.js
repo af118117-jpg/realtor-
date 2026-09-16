@@ -1,13 +1,15 @@
-(function () {
+// Async because the property being edited and the settings that drive the
+// category/amenity pickers are now fetched from the API before the form can
+// be populated.
+(async function () {
   "use strict";
 
-  AdminStore.seedIfEmpty();
   AdminUI.mountPage("properties");
 
-  const settings = AdminStore.getSettings();
   const params = new URLSearchParams(window.location.search);
   let editingId = params.get("id") || null;
-  let existing = editingId ? AdminStore.getProperty(editingId) : null;
+  const settings = await AdminStore.getSettings();
+  let existing = editingId ? await AdminStore.getProperty(editingId) : null;
 
   // In-memory working state for media (persisted only on Save Draft / Publish).
   const state = {
@@ -107,12 +109,9 @@
 
   /* -------------------------------- Images -------------------------------- */
 
-  async function resolveMediaUrl(item) {
+  function resolveMediaUrl(item) {
     if (item.externalSrc) return `../${item.externalSrc}`;
-    if (item.mediaId) {
-      const rec = await AdminDB.get(item.mediaId);
-      return AdminDB.objectUrlFor(rec) || "";
-    }
+    if (item.mediaId) return AdminDB.objectUrlFor(item.mediaId) || "";
     return "";
   }
 
@@ -128,7 +127,7 @@
       grid.innerHTML = `<p class="hint">No images uploaded yet.</p>`;
       return;
     }
-    const urls = await Promise.all(state.images.map(resolveMediaUrl));
+    const urls = state.images.map(resolveMediaUrl);
     if (token !== imagesRenderToken) return;
     grid.innerHTML = state.images.map((img, i) => `
       <div class="admin-thumb" draggable="true" data-index="${i}">
@@ -147,8 +146,12 @@
   $("image-input").addEventListener("change", async (e) => {
     const files = Array.from(e.target.files || []);
     for (const file of files) {
-      const mediaId = await AdminDB.put({ kind: "image", name: file.name, mimeType: file.type, size: file.size, blob: file });
-      state.images.push({ mediaId, isCover: state.images.length === 0 });
+      try {
+        const mediaId = await AdminDB.put({ kind: "image", name: file.name, mimeType: file.type, size: file.size, blob: file });
+        state.images.push({ mediaId, isCover: state.images.length === 0 });
+      } catch (err) {
+        AdminUI.toast(`${file.name}: ${err.message || "upload failed"}`, "error");
+      }
     }
     e.target.value = "";
     renderImages();
@@ -238,11 +241,10 @@
       grid.innerHTML = `<p class="hint">No videos added yet.</p>`;
       return;
     }
-    const cards = await Promise.all(state.videos.map(async (v, i) => {
+    const cards = state.videos.map((v, i) => {
       let thumbUrl = v.thumbnailUrl || "";
       if (!thumbUrl && v.thumbnailMediaId) {
-        const rec = await AdminDB.get(v.thumbnailMediaId);
-        thumbUrl = AdminDB.objectUrlFor(rec) || "";
+        thumbUrl = AdminDB.objectUrlFor(v.thumbnailMediaId) || "";
       }
       const label = v.type === "file" ? (v.name || "Uploaded video") : v.type === "youtube" ? "YouTube" : "Vimeo";
       return `
@@ -255,7 +257,7 @@
             <button type="button" data-video-act="delete" data-index="${i}" title="Delete">🗑</button>
           </div>
         </div>`;
-    }));
+    });
     if (token !== videosRenderToken) return;
     grid.innerHTML = cards.join("");
   }
@@ -263,11 +265,15 @@
   $("video-input").addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const mediaId = await AdminDB.put({ kind: "video", name: file.name, mimeType: file.type, size: file.size, blob: file });
-    const entry = { type: "file", mediaId, name: file.name, thumbnailUrl: "", thumbnailMediaId: null };
-    const thumbBlob = await generateVideoThumbnail(file);
-    if (thumbBlob) entry.thumbnailMediaId = await AdminDB.put({ kind: "image", name: "auto-thumbnail.jpg", mimeType: "image/jpeg", size: thumbBlob.size, blob: thumbBlob });
-    state.videos.push(entry);
+    try {
+      const mediaId = await AdminDB.put({ kind: "video", name: file.name, mimeType: file.type, size: file.size, blob: file });
+      const entry = { type: "file", mediaId, name: file.name, thumbnailUrl: "", thumbnailMediaId: null };
+      const thumbBlob = await generateVideoThumbnail(file);
+      if (thumbBlob) entry.thumbnailMediaId = await AdminDB.put({ kind: "image", name: "auto-thumbnail.jpg", mimeType: "image/jpeg", size: thumbBlob.size, blob: thumbBlob });
+      state.videos.push(entry);
+    } catch (err) {
+      AdminUI.toast(err.message || "Video upload failed.", "error");
+    }
     e.target.value = "";
     renderVideos();
   });
@@ -301,9 +307,13 @@
     const input = e.target.closest("input[data-video-thumb-input]");
     if (!input || !input.files?.[0]) return;
     const i = Number(input.dataset.videoThumbInput);
-    const mediaId = await AdminDB.put({ kind: "image", name: input.files[0].name, mimeType: input.files[0].type, size: input.files[0].size, blob: input.files[0] });
-    state.videos[i].thumbnailMediaId = mediaId;
-    state.videos[i].thumbnailUrl = "";
+    try {
+      const mediaId = await AdminDB.put({ kind: "image", name: input.files[0].name, mimeType: input.files[0].type, size: input.files[0].size, blob: input.files[0] });
+      state.videos[i].thumbnailMediaId = mediaId;
+      state.videos[i].thumbnailUrl = "";
+    } catch (err) {
+      AdminUI.toast(err.message || "Thumbnail upload failed.", "error");
+    }
     renderVideos();
   });
 
@@ -332,8 +342,12 @@
   $("doc-input").addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const mediaId = await AdminDB.put({ kind: "document", name: file.name, mimeType: file.type, size: file.size, blob: file, isPrivate: true });
-    state.documents.push({ mediaId, name: file.name, size: file.size, docType: $("f-doc-type").value, isPrivate: true });
+    try {
+      const mediaId = await AdminDB.put({ kind: "document", name: file.name, mimeType: file.type, size: file.size, blob: file, isPrivate: true });
+      state.documents.push({ mediaId, name: file.name, size: file.size, docType: $("f-doc-type").value, isPrivate: true });
+    } catch (err) {
+      AdminUI.toast(err.message || "Document upload failed.", "error");
+    }
     e.target.value = "";
     renderDocs();
   });
@@ -376,7 +390,7 @@
   async function renderPreview() {
     const v = readFormValues();
     const cover = v.images.find((i) => i.isCover) || v.images[0];
-    const coverUrl = cover ? await resolveMediaUrl(cover) : "../assets/images/agent/agent-placeholder.svg";
+    const coverUrl = cover ? resolveMediaUrl(cover) : "../assets/images/agent/agent-placeholder.svg";
     const priceStr = AdminUI.formatCurrency(v.price, settings);
     const facts = [
       v.beds != null ? `${v.beds} Beds` : null,
@@ -414,7 +428,13 @@
       $("f-title").focus();
       return;
     }
-    const saved = AdminStore.saveProperty({ id: editingId || undefined, ...v, status });
+    let saved;
+    try {
+      saved = await AdminStore.saveProperty({ id: editingId || undefined, ...v, status });
+    } catch (err) {
+      AdminUI.toast(err.message || "Could not save this property.", "error");
+      return;
+    }
     editingId = saved.id;
     existing = saved;
     $("editor-status-meta").textContent = `Status: ${ADMIN_CONFIG.statusLabels[saved.status]} · Last updated ${AdminUI.formatDate(saved.updatedAt)}`;

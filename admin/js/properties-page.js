@@ -1,10 +1,8 @@
 (function () {
   "use strict";
 
-  AdminStore.seedIfEmpty();
   AdminUI.mountPage("properties");
 
-  const settings = AdminStore.getSettings();
   const searchEl = document.getElementById("pf-search");
   const statusEl = document.getElementById("pf-status");
   const typeEl = document.getElementById("pf-type");
@@ -13,21 +11,23 @@
   const emptyEl = document.getElementById("properties-empty");
   const countMeta = document.getElementById("properties-count-meta");
 
+  // Populated by bootstrap() before anything renders.
+  let settings = {};
+  // Last list fetched from the API, so row actions and filters can read a
+  // property without a second round-trip.
+  let cache = [];
+
   statusEl.innerHTML += ADMIN_CONFIG.statuses.map((s) => `<option value="${s}">${ADMIN_CONFIG.statusLabels[s]}</option>`).join("");
-  typeEl.innerHTML += (settings.propertyTypes || ADMIN_CONFIG.defaultPropertyTypes).map((t) => `<option value="${t}">${t}</option>`).join("");
 
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
-  async function coverThumbUrl(p) {
+  function coverThumbUrl(p) {
     const cover = (p.images || []).find((i) => i.isCover) || (p.images || [])[0];
     if (!cover) return "../assets/images/agent/agent-placeholder.svg";
     if (cover.externalSrc) return `../${cover.externalSrc}`;
-    if (cover.mediaId) {
-      const rec = await AdminDB.get(cover.mediaId);
-      return AdminDB.objectUrlFor(rec) || "../assets/images/agent/agent-placeholder.svg";
-    }
+    if (cover.mediaId) return AdminDB.objectUrlFor(cover.mediaId) || "../assets/images/agent/agent-placeholder.svg";
     return "../assets/images/agent/agent-placeholder.svg";
   }
 
@@ -43,8 +43,8 @@
     return true;
   }
 
-  async function renderRow(p) {
-    const thumb = await coverThumbUrl(p);
+  function renderRow(p) {
+    const thumb = coverThumbUrl(p);
     return `
       <tr data-id="${p.id}">
         <td><img class="thumb" src="${thumb}" alt=""></td>
@@ -73,69 +73,92 @@
   }
 
   // Filter inputs fire in quick succession (typing, or resetting several
-  // filters back-to-back), and each render() awaits per-row thumbnail lookups
-  // — so calls can resolve out of order. A render token makes a stale call a
-  // no-op instead of overwriting the table with results for a filter state
-  // that's no longer current.
+  // filters back-to-back), and each render() awaits the API — so calls can
+  // resolve out of order. A render token makes a stale call a no-op instead of
+  // overwriting the table with results for a filter state that's no longer
+  // current.
   let renderToken = 0;
 
   async function render() {
     const token = ++renderToken;
-    const all = AdminStore.listProperties().filter(matchesFilters).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    const total = AdminStore.listProperties().length;
-    if (!all.length) {
+    let list;
+    try {
+      list = await AdminStore.listProperties();
+    } catch (err) {
       if (token !== renderToken) return;
+      emptyEl.innerHTML = `<div class="admin-empty">Could not load properties: ${escapeHtml(err.message)}</div>`;
       tbody.innerHTML = "";
-      emptyEl.innerHTML = `<div class="admin-empty">No properties match. <a href="property-editor.html">Add a property</a> or adjust your filters.</div>`;
-      countMeta.textContent = `${all.length} of ${total} properties`;
       return;
     }
-    const rows = await Promise.all(all.map(renderRow));
     if (token !== renderToken) return; // a newer render started while we awaited — discard this one
+    cache = list;
+
+    const all = list.filter(matchesFilters).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    countMeta.textContent = `${all.length} of ${list.length} properties`;
+
+    if (!all.length) {
+      tbody.innerHTML = "";
+      emptyEl.innerHTML = `<div class="admin-empty">No properties match. <a href="property-editor.html">Add a property</a> or adjust your filters.</div>`;
+      return;
+    }
     emptyEl.innerHTML = "";
-    tbody.innerHTML = rows.join("");
-    countMeta.textContent = `${all.length} of ${total} properties`;
+    tbody.innerHTML = all.map(renderRow).join("");
   }
 
   tbody.addEventListener("click", async (e) => {
     const btn = e.target.closest("button[data-act]");
     if (!btn) return;
     const id = btn.closest("tr").dataset.id;
-    const p = AdminStore.getProperty(id);
+    const p = cache.find((x) => x.id === id);
     if (!p) return;
 
-    if (btn.dataset.act === "duplicate") {
-      AdminStore.duplicateProperty(id);
-      AdminUI.toast("Property duplicated as a draft.", "success");
-      render();
-    } else if (btn.dataset.act === "publish") {
-      AdminStore.setPropertyStatus(id, "active");
-      AdminUI.toast("Property published.", "success");
-      render();
-    } else if (btn.dataset.act === "unpublish") {
-      AdminStore.setPropertyStatus(id, "draft");
-      AdminUI.toast("Property unpublished.", "success");
-      render();
-    } else if (btn.dataset.act === "delete") {
-      const ok = await AdminUI.confirmDialog(`Delete "${escapeHtml(p.title) || "this property"}"? This cannot be undone.`, { confirmLabel: "Delete", danger: true });
-      if (ok) {
-        AdminStore.deleteProperty(id);
-        AdminUI.toast("Property deleted.", "success");
-        render();
+    try {
+      if (btn.dataset.act === "duplicate") {
+        await AdminStore.duplicateProperty(id);
+        AdminUI.toast("Property duplicated as a draft.", "success");
+        await render();
+      } else if (btn.dataset.act === "publish") {
+        await AdminStore.setPropertyStatus(id, "active");
+        AdminUI.toast("Property published.", "success");
+        await render();
+      } else if (btn.dataset.act === "unpublish") {
+        await AdminStore.setPropertyStatus(id, "draft");
+        AdminUI.toast("Property unpublished.", "success");
+        await render();
+      } else if (btn.dataset.act === "delete") {
+        const ok = await AdminUI.confirmDialog(`Delete "${escapeHtml(p.title) || "this property"}"? This cannot be undone.`, { confirmLabel: "Delete", danger: true });
+        if (ok) {
+          await AdminStore.deleteProperty(id);
+          AdminUI.toast("Property deleted.", "success");
+          await render();
+        }
       }
+    } catch (err) {
+      AdminUI.toast(err.message || "That action failed.", "error");
     }
   });
 
-  tbody.addEventListener("change", (e) => {
+  tbody.addEventListener("change", async (e) => {
     const select = e.target.closest("select[data-act='set-status']");
     if (!select) return;
     const id = select.closest("tr").dataset.id;
-    AdminStore.setPropertyStatus(id, select.value);
-    AdminUI.toast(`Status set to ${ADMIN_CONFIG.statusLabels[select.value]}.`, "success");
-    render();
+    try {
+      await AdminStore.setPropertyStatus(id, select.value);
+      AdminUI.toast(`Status set to ${ADMIN_CONFIG.statusLabels[select.value]}.`, "success");
+      await render();
+    } catch (err) {
+      AdminUI.toast(err.message || "Could not update the status.", "error");
+    }
   });
 
   [searchEl, statusEl, typeEl, listingTypeEl].forEach((el) => el.addEventListener("input", render));
 
-  render();
+  async function bootstrap() {
+    settings = await AdminStore.getSettings();
+    typeEl.innerHTML += (settings.propertyTypes || ADMIN_CONFIG.defaultPropertyTypes)
+      .map((t) => `<option value="${t}">${t}</option>`).join("");
+    await render();
+  }
+
+  bootstrap();
 })();

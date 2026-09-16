@@ -1,9 +1,14 @@
 # SECURITY PLAN — REALTOR SHAMRAIZ
 
-**Last updated:** 2026-09-08
+**Last updated:** 2026-09-13
 
 A static site has a small attack surface — but it handles personal data from
 lead forms, and it represents a business whose reputation depends on trust.
+
+**As of 2026-09-13 there is also a backend** (`server/`, see
+`TECH_ARCHITECTURE.md` §9 and `plans/MASTER_PLAN.md` D-28), which adds a real
+server attack surface: authentication, file uploads, and a database holding
+lead data. §10 below covers it; the rules for the static frontend are unchanged.
 
 ---
 
@@ -84,7 +89,14 @@ retention period: `[CONTENT REQUIRED]`.
 
 ## 4. Form endpoint requirements
 
-The chosen provider (`[CONTENT REQUIRED]`) must support:
+**Resolved 2026-09-13:** the endpoint is this project's own backend
+(`POST /api/v1/public/leads`), not a third-party provider — see §10. The
+checklist below is kept as the standard it must meet, and it does: HTTPS in
+production, per-IP rate limiting, honeypot + timing spam checks, a CORS origin
+allowlist, no public exposure of submissions, and data held in a database the
+client controls (retention policy still `[CONTENT REQUIRED]`).
+
+The original requirement, for reference — any provider must support:
 - [ ] HTTPS only
 - [ ] Server-side rate limiting per IP
 - [ ] Spam filtering
@@ -128,7 +140,9 @@ This applies to two distinct things and neither gets a pass:
 
 ## 6. Dependencies
 
-- Build-time only; **zero runtime dependencies** targeted
+- **Frontend:** build-time only; **zero runtime dependencies** targeted.
+  The backend (`server/`) has its own justified list — see
+  `TECH_ARCHITECTURE.md` §9 — and is audited by the same rules below.
 - `package-lock.json` committed
 - `npm audit` clean at every release; no unresolved high or critical advisories
 - Every dependency justified in `TECH_ARCHITECTURE.md` §8
@@ -145,10 +159,11 @@ This applies to two distinct things and neither gets a pass:
 
 ## 8. Repository and secrets
 
-- **This directory is not yet under version control.** Initialising git is a
-  prerequisite (`PHASE_00_AUDIT.md`).
-- `.gitignore` must cover `node_modules/`, `dist/`, `.env*`, editor and OS
-  artifacts, and the stray `WPS Cloud Files/` cache directory
+- This directory **is** under version control (git), resolving the
+  `PHASE_00_AUDIT.md` prerequisite.
+- `.gitignore` covers `node_modules/`, `dist/`, `.env*` (with `.env.example`
+  explicitly re-included), uploaded media under `server/storage/`, editor and
+  OS artifacts, and the stray `WPS Cloud Files/` cache directory
 - No credentials, tokens, or API keys committed
 - A static build cannot hold a secret — anything shipped to the browser is public
 
@@ -167,3 +182,60 @@ This applies to two distinct things and neither gets a pass:
 - [ ] Privacy policy accurate and matching actual behaviour
 - [ ] Consent flow functional and accessible
 - [ ] 404 and error pages leak no internal information
+
+## 10. Backend security (added 2026-09-13)
+
+The form-endpoint requirements in §4 are now satisfied in-house rather than by
+a third party: submissions go to this project's own `POST /api/v1/public/leads`.
+
+### 10.1 Authentication and sessions
+- Passwords hashed with **bcrypt** (12 rounds, via the pure-JS `bcryptjs`
+  build). No password, hash, or token is ever stored in
+  `localStorage`/`sessionStorage`.
+- Session = a short-lived **JWT access cookie** (15 min) plus an **opaque
+  refresh cookie** (14 days). Both `httpOnly`, `SameSite=Lax`, and `Secure` in
+  production — unreadable by JavaScript, so an XSS bug cannot exfiltrate them.
+- Refresh tokens are stored only as SHA-256 hashes and **rotate on every use**,
+  with the replaced token recorded — so a stolen refresh token is revocable,
+  which a bare stateless JWT is not.
+- First-run account creation (`/auth/setup`) is refused once any user exists.
+- The seed script refuses to create an admin without an explicitly supplied
+  password — there is no default credential to forget to change.
+
+### 10.2 Request-level protections
+- **CSRF:** every state-changing request must carry `X-Admin-Request: 1`. A
+  cross-site form post or injected `<img>`/`<script>` cannot set a custom
+  header, and `SameSite=Lax` already blocks the cookie on cross-site
+  subrequests.
+- **Rate limiting:** 300 req/15 min globally, 20/15 min on login and refresh,
+  5/10 min on public lead submission.
+- **Validation:** every request body, query and param is parsed by a Zod schema
+  before it reaches a handler.
+- **Error handling:** one central handler. Stack traces, driver errors and file
+  paths are never returned to a client; unexpected errors are logged and
+  answered with a bare `500`.
+- **Headers:** `helmet` defaults plus a `default-src 'none'` CSP (the API
+  serves no markup of its own). CORS is locked to an explicit origin
+  allowlist with credentials enabled — never `*`.
+
+### 10.3 Uploads and files
+- MIME allowlist (images, video, PDF/Word/text) enforced from the file's own
+  declared type, never a client-supplied "kind" field; per-kind size caps.
+- Stored filenames are generated (UUID + sanitized slug), so a crafted
+  `../../` filename cannot escape the storage directory.
+- Property documents are **always** `isPrivate` — the API ignores any client
+  attempt to set that flag — and their bytes are only streamed to an
+  authenticated request.
+
+### 10.4 Lead data
+- §3.2's rule stands and is now easier to honour: visitor data goes to the
+  server over HTTPS and is never written to browser storage.
+- Anti-spam is honeypot + submission-timing, checked server-side. A failing
+  submission gets an ordinary success response and is discarded, so a bot
+  learns nothing about which check caught it.
+- Consent is required by the schema; a submission without it is rejected.
+
+### 10.5 Secrets
+- `.env` is gitignored; `.env.example` carries placeholders only.
+- JWT secrets must be replaced with real random values before any deployment;
+  the app refuses to start if they are shorter than 16 characters.

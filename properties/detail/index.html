@@ -71,12 +71,14 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-7.2 7-12a7 7 0 1 0-14 0c0 4.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
               <span data-p-area></span>
             </p>
+            <ul class="property-keyfacts" data-p-keyfacts hidden></ul>
             <p class="property-flags">
               <span class="badge badge-status" data-p-status hidden></span>
               <span class="badge-demo" data-p-demo-flag hidden>Sample listing &mdash; not a real property</span>
             </p>
           </div>
           <div class="property-head-price">
+            <span class="property-price-label" data-p-price-label></span>
             <span class="property-price" data-p-price></span>
             <span class="property-ref">Ref <span data-p-ref></span></span>
           </div>
@@ -84,9 +86,19 @@
       </div>
     </section>
 
-    <section class="section-tight">
+    <section class="property-gallery-section">
       <div class="container">
-        <div class="gallery-grid" data-p-gallery data-lightbox></div>
+        <!-- Desktop: mosaic (lead frame + thumbnails). Under 640px: a swipe
+             strip with a position badge. Layout is driven by data-count, set in
+             js/property-detail.js. -->
+        <div class="property-gallery">
+          <div class="gallery-grid" data-p-gallery data-lightbox></div>
+          <span class="gallery-position" data-p-gallery-position aria-hidden="true" hidden></span>
+          <button type="button" class="gallery-open" data-p-gallery-count hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span>View photos</span>
+          </button>
+        </div>
         <div class="property-video" data-p-video hidden>
           <h2 class="property-sub">Property video</h2>
           <div class="video-frame" data-p-video-mount></div>
@@ -151,19 +163,31 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                   Request this viewing
                 </button>
-                <p class="form-note">Nothing you type here is stored on this site. Submitting opens your own messaging app; if that channel is not connected yet you will be given both phone numbers instead.</p>
+                <p class="form-note">Your details are sent to Realtor Shamraiz so they can reply to this enquiry. Fields marked <span class="required" aria-hidden="true">*</span> are required.</p>
               </form>
             </div>
           </div>
 
           <aside class="property-aside">
             <div class="agent-card">
+              <p class="agent-card-eyebrow">Your agent</p>
               <div class="agent-card-head">
                 <img src="../../assets/images/agent/agent-placeholder.svg" alt="Realtor Shamraiz" width="64" height="64">
                 <div>
                   <strong data-config="siteName">Realtor Shamraiz</strong>
                   <span>Bahria Town Rawalpindi &amp; DHA Islamabad</span>
                 </div>
+              </div>
+              <!-- Trust points are the client's own confirmed claims (docs/COPY_DECK.md);
+                   do not add response times, ratings or deal counts here. -->
+              <ul class="agent-card-points">
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-3.5 7-10V5l-7-3-7 3v7c0 6.5 7 10 7 10z"/><path d="M9 12l2 2 4-4"/></svg>Properly documented transactions</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 21h18M5 21V8l7-5 7 5v13"/><path d="M10 21v-6h4v6"/></svg>Site visits arranged on request</li>
+              </ul>
+              <div class="agent-card-ref">
+                <span class="agent-card-ref-label">Enquiring about</span>
+                <strong data-p-agent-title></strong>
+                <span data-p-agent-price></span>
               </div>
               <div class="agent-card-actions">
                 <a class="btn btn-primary btn-block" href="tel:" data-config-href="phone" data-config-href-type="tel">
@@ -178,7 +202,7 @@
                 <div data-p-whatsapp-mount></div>
                 <a class="btn btn-outline btn-block" href="#main" data-p-scroll-to-form>Request a viewing</a>
               </div>
-              <p class="agent-card-note">Site visits are arranged on request, including exclusive options that are not listed publicly.</p>
+              <p class="agent-card-note">Exclusive options that are not listed publicly can also be shared on request.</p>
             </div>
           </aside>
         </div>
@@ -208,6 +232,20 @@
       </div>
     </div>
   </section>
+
+  <!-- Mobile-only action bar (hidden above 980px by CSS). Shown while neither
+       the agent card nor the viewing form is on screen — js/property-detail.js. -->
+  <div class="property-cta-bar" data-p-cta-bar>
+    <div class="property-cta-bar-info">
+      <span class="property-cta-bar-price" data-p-price></span>
+      <span class="property-cta-bar-title" data-p-title></span>
+    </div>
+    <a class="btn btn-outline btn-sm" href="#main" data-p-cta-bar-viewing>Viewing</a>
+    <a class="btn btn-primary btn-sm" href="tel:" data-config-href="phone" data-config-href-type="tel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1.1.4 2.2.8 3.2a2 2 0 0 1-.4 2.1L8.1 10.5a16 16 0 0 0 6 6l1.5-1.4a2 2 0 0 1 2.1-.4c1 .4 2.1.7 3.2.8a2 2 0 0 1 1.1 2.4z"/></svg>
+      Call
+    </a>
+  </div>
 
   <div class="lightbox" aria-hidden="true">
     <div class="lightbox-img-wrap">

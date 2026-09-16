@@ -1,7 +1,9 @@
 # TECH ARCHITECTURE — REALTOR SHAMRAIZ
 
-**Last updated:** 2026-09-07
-**Status:** ⚠️ **DECISION PENDING CLIENT APPROVAL** — see §3
+**Last updated:** 2026-09-13
+**Status:** ⚠️ **FRONTEND DECISION STILL PENDING** — see §3.
+A backend now exists and is documented in §9; it is **independent of** the
+Astro-vs-static-HTML question below, which remains open.
 
 This architecture was derived independently from the master requirements. No
 architectural assumption was carried over from any other project.
@@ -156,5 +158,47 @@ the `[CONTENT REQUIRED]` policy enforceable by grep.
 - No UI/component library. The design system is bespoke (`DESIGN_SYSTEM.md`).
 - No analytics or third-party script without an entry in `SECURITY_PLAN.md` and
   a corresponding CSP allowance.
-- Anticipated total production runtime dependencies: **zero**. Astro is a
-  build-time dependency only.
+- **Frontend** production runtime dependencies: **zero** (unchanged). Astro,
+  if adopted, is a build-time dependency only. The zero-dependency pledge was
+  always scoped to what ships to the browser; the backend in §9 is a separate
+  Node process and has its own justified dependency list.
+
+## 9. Backend (added 2026-09-13)
+
+A real backend replaced the client-side-only admin data layer. See
+`plans/MASTER_PLAN.md` D-28 and `server/README.md`.
+
+**Shape:** a standalone Node.js + TypeScript REST API in `server/`, running as
+its own process on its own port. The repo-root `server.js` (the zero-dependency
+static dev server) is untouched and still serves the frontend.
+
+| Concern | Choice | Why |
+|---|---|---|
+| Framework | Express 4 | Minimal, well-understood, no framework lock-in for a ~25-route API |
+| ORM / DB | Prisma + PostgreSQL | Typed schema and migrations; provider-portable through `DATABASE_URL` alone |
+| Validation | Zod | One schema per endpoint, shared error shape, no hand-rolled guards |
+| Auth | JWT access cookie (15 min) + rotating opaque refresh cookie (14 days), both `httpOnly`/`SameSite=Lax` | Six independent static admin pages share a session with no token plumbing, and no token is readable by JavaScript |
+| CSRF | Required `X-Admin-Request` header on state-changing requests | A cross-site form or script cannot set a custom header; no extra dependency |
+| Passwords | bcrypt via `bcryptjs` (12 rounds) | Standard and deliberately slow; the pure-JS build avoids a node-gyp step and keeps a critical-severity `tar` chain out of the tree |
+| Media | `multer` → local disk behind the API | Only `src/modules/media` touches the filesystem, so S3/R2 later changes one module and zero frontend code |
+| Logging | pino / pino-http | Structured, silent in tests |
+| Docs | swagger-jsdoc + swagger-ui-express at `/api/docs` | Route annotations stay next to the routes |
+| Tests | Jest + Supertest against a real Postgres | Integration and e2e coverage, not mocks |
+
+**Runtime dependencies (backend only):** express, @prisma/client, zod,
+bcryptjs, jsonwebtoken, cookie-parser, helmet, cors, express-rate-limit,
+multer, pino, pino-http, swagger-jsdoc, swagger-ui-express, dotenv. Each is
+load-bearing for a row in the table above. `npm audit` reports **0
+vulnerabilities**; two transitive advisories (`qs` via express, `deepmerge-ts`
+via the Prisma CLI) are resolved by pinned `overrides` in
+`server/package.json`, each with a comment explaining why.
+
+**Database portability:** nothing in the code names a provider. Local
+development can use Docker (`server/docker-compose.yml`), a native Postgres
+install, a managed provider (Neon/Supabase/Railway), or the zero-install
+PGlite dev server (`npm run dev:db`) for machines with neither Postgres nor
+Docker. Production hosting is still `[CONTENT REQUIRED]`.
+
+**Relationship to §3:** the backend serves JSON and files. It does not decide,
+and is not affected by, whether the frontend stays hand-authored static HTML or
+moves to Astro — either consumes the same endpoints.

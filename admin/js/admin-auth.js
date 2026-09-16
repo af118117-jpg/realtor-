@@ -1,114 +1,147 @@
 /**
- * Admin Panel — access gate.
+ * Admin Panel — authentication.
  * ---------------------------------------------------------------------------
- * IMPORTANT — read before relying on this for anything:
- * This is a CLIENT-SIDE ONLY gate. The "password" is checked by JavaScript
- * running in the visitor's own browser against a hash stored in this same
- * browser's localStorage. Anyone with DevTools access to this machine (or to
- * the deployed site's browser console, if this is ever put on a public host
- * as-is) can read the stored hash or simply skip the check entirely — a
- * static site has no server to actually enforce a "no" once JavaScript is
- * running on the client. Do NOT treat this as real security, and do NOT
- * deploy this admin panel to a public host until a real backend performs
- * authentication and authorization server-side. See the Security tab in
- * Settings and plans/MASTER_PLAN.md (D-26) for the same disclosure.
+ * This is now REAL authentication. Credentials are verified by the backend
+ * (server/src/modules/auth), passwords are bcrypt-hashed in PostgreSQL, and
+ * the session is a pair of httpOnly cookies the browser cannot read — so a
+ * "no" can no longer be bypassed from DevTools the way the previous
+ * client-side gate could. See plans/MASTER_PLAN.md (D-28).
  *
- * What this DOES do: keep the panel out of casual reach on a shared machine,
- * and give the eventual backend integration a ready-made seam (verifyLogin /
- * requireAuth) to swap for a real API call.
+ * EVERY FUNCTION HERE IS ASYNC except getSession()/currentUsername(), which
+ * read a display-only cached username.
  */
 
 const AdminAuth = (function () {
   "use strict";
 
-  function toHex(buffer) {
-    return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const API = ADMIN_CONFIG.apiBase;
+  const USERNAME_CACHE_KEY = "rs-admin:username";
+
+  async function request(path, options) {
+    const opts = options || {};
+    const method = opts.method || "GET";
+    const headers = {};
+    if (method !== "GET") headers["X-Admin-Request"] = "1";
+    if (opts.json !== undefined) headers["Content-Type"] = "application/json";
+
+    const res = await fetch(`${API}${path}`, {
+      method,
+      headers,
+      body: opts.json !== undefined ? JSON.stringify(opts.json) : undefined,
+      credentials: "include",
+    });
+    return res;
   }
 
-  function randomSalt() {
-    return toHex(crypto.getRandomValues(new Uint8Array(16)).buffer);
-  }
-
-  async function hash(password, salt) {
-    const data = new TextEncoder().encode(`${salt}:${password}`);
-    const digest = await crypto.subtle.digest("SHA-256", data);
-    return toHex(digest);
-  }
-
-  function getCredentials() {
+  function cacheUsername(username) {
     try {
-      const raw = localStorage.getItem(ADMIN_CONFIG.keys.credentials);
-      return raw ? JSON.parse(raw) : null;
+      sessionStorage.setItem(USERNAME_CACHE_KEY, username || "");
     } catch {
-      return null;
+      /* private mode / storage disabled — the name is display-only */
     }
   }
 
-  function hasCredentials() {
-    return !!getCredentials();
+  function readCachedUsername() {
+    try {
+      return sessionStorage.getItem(USERNAME_CACHE_KEY) || "";
+    } catch {
+      return "";
+    }
   }
 
+  /** True once the one-time admin account exists on the server. */
+  async function hasCredentials() {
+    try {
+      const res = await request("/auth/setup-required");
+      if (!res.ok) return false;
+      const body = await res.json();
+      return !body.setupRequired;
+    } catch {
+      return false;
+    }
+  }
+
+  /** First-run account creation. Logs in on success. */
   async function setupCredentials(username, password) {
-    const salt = randomSalt();
-    const hashed = await hash(password, salt);
-    const record = { username: username.trim(), salt, hash: hashed, createdAt: new Date().toISOString() };
-    localStorage.setItem(ADMIN_CONFIG.keys.credentials, JSON.stringify(record));
-    return record;
+    const res = await request("/auth/setup", {
+      method: "POST",
+      json: { username: String(username).trim(), password },
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || "Could not create the admin account.");
+    }
+    const user = await res.json();
+    cacheUsername(user.username);
+    return user;
   }
 
   async function verifyLogin(username, password) {
-    const creds = getCredentials();
-    if (!creds) return false;
-    if (creds.username.toLowerCase() !== username.trim().toLowerCase()) return false;
-    const attempt = await hash(password, creds.salt);
-    return attempt === creds.hash;
-  }
-
-  async function changePassword(currentPassword, newPassword) {
-    const creds = getCredentials();
-    if (!creds) return false;
-    const ok = await verifyLogin(creds.username, currentPassword);
-    if (!ok) return false;
-    await setupCredentials(creds.username, newPassword);
+    const res = await request("/auth/login", {
+      method: "POST",
+      json: { username: String(username).trim(), password },
+    });
+    if (!res.ok) return false;
+    const user = await res.json();
+    cacheUsername(user.username);
     return true;
   }
 
+  async function changePassword(currentPassword, newPassword) {
+    const res = await request("/auth/change-password", {
+      method: "POST",
+      json: { currentPassword, newPassword },
+    });
+    return res.ok;
+  }
+
+  /** The session is established by the server's cookies at login time; this
+   * only records the username for the topbar. Kept for call-site compatibility. */
   function startSession(username) {
-    sessionStorage.setItem(ADMIN_CONFIG.keys.session, JSON.stringify({ username, loginAt: Date.now() }));
+    cacheUsername(username);
   }
 
   function getSession() {
-    try {
-      const raw = sessionStorage.getItem(ADMIN_CONFIG.keys.session);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+    const username = readCachedUsername();
+    return username ? { username } : null;
   }
 
-  function isAuthenticated() {
-    const session = getSession();
-    if (!session) return false;
-    if (Date.now() - session.loginAt > ADMIN_CONFIG.sessionMaxAgeMs) {
-      endSession();
+  async function isAuthenticated() {
+    try {
+      const res = await request("/auth/me");
+      if (!res.ok) return false;
+      const user = await res.json();
+      cacheUsername(user.username);
+      return true;
+    } catch {
       return false;
     }
-    const creds = getCredentials();
-    return !!creds && creds.username === session.username;
   }
 
   function endSession() {
-    sessionStorage.removeItem(ADMIN_CONFIG.keys.session);
+    try {
+      sessionStorage.removeItem(USERNAME_CACHE_KEY);
+    } catch {
+      /* nothing to clear */
+    }
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await request("/auth/logout", { method: "POST" });
+    } catch {
+      /* log out locally even if the network call fails */
+    }
     endSession();
     window.location.href = "login.html";
   }
 
-  /** Call at the very top of every protected page, before other markup renders. */
-  function requireAuth() {
-    if (!hasCredentials() || !isAuthenticated()) {
+  /** Call at the very top of every protected page. Returns a promise that
+   * resolves true when the session is valid; redirects to login otherwise. */
+  async function requireAuth() {
+    const ok = await isAuthenticated();
+    if (!ok) {
+      endSession();
       window.location.replace("login.html");
       return false;
     }
@@ -118,6 +151,6 @@ const AdminAuth = (function () {
   return {
     hasCredentials, setupCredentials, verifyLogin, changePassword,
     startSession, getSession, isAuthenticated, endSession, logout, requireAuth,
-    currentUsername: () => (getSession() || {}).username || (getCredentials() || {}).username || "",
+    currentUsername: () => readCachedUsername(),
   };
 })();

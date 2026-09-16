@@ -41,6 +41,10 @@
   // ---- Runs immediately, before <body> exists. Sets the attribute pre-paint. ----
   var initialTheme = getStoredTheme() || systemTheme();
   applyTheme(initialTheme);
+  // Marks "scripts are running" before first paint. CSS gates JS-driven
+  // presentation (scroll reveal) on this class so a script failure degrades to
+  // fully visible content rather than blank sections.
+  document.documentElement.classList.add("js");
 
   function setTheme(theme, persist) {
     applyTheme(theme);

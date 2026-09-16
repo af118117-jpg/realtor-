@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  AdminStore.seedIfEmpty();
   AdminUI.mountPage("media");
 
   let activeKind = "image";
@@ -13,15 +12,12 @@
     return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
 
-  function findReferences(mediaId) {
-    const refs = [];
-    AdminStore.listProperties().forEach((p) => {
-      const inImages = (p.images || []).some((i) => i.mediaId === mediaId);
-      const inVideos = (p.videos || []).some((v) => v.mediaId === mediaId || v.thumbnailMediaId === mediaId);
-      const inDocs = (p.documents || []).some((d) => d.mediaId === mediaId);
-      if (inImages || inVideos || inDocs) refs.push(p.title || p.propertyId || p.id);
-    });
-    return refs;
+  /** Which properties still use this file. The server owns this check now
+   * (GET /media/:id/references), so it stays correct even if another device
+   * attached the file to a property a moment ago. */
+  async function findReferences(mediaId) {
+    const properties = await AdminDB.references(mediaId);
+    return properties.map((p) => p.title || p.id);
   }
 
   // Switching tabs quickly (or delete-then-switch) fires overlapping async
@@ -33,7 +29,11 @@
   async function render() {
     const token = ++renderToken;
     const kindAtStart = activeKind;
-    const items = (await AdminDB.all()).filter((m) => m.kind === kindAtStart).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // The API returns kinds as uppercase enum values ("IMAGE"); the tabs use
+    // the UI's lowercase vocabulary ("image").
+    const items = (await AdminDB.all())
+      .filter((m) => String(m.kind).toLowerCase() === kindAtStart)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     if (token !== renderToken) return; // a newer render started while we awaited — discard this one
     countMeta.textContent = `${items.length} file(s)`;
     if (!items.length) {
@@ -71,14 +71,18 @@
     const btn = e.target.closest("[data-delete-media]");
     if (!btn) return;
     const id = btn.closest(".admin-thumb").dataset.id;
-    const refs = findReferences(id);
+    const refs = await findReferences(id);
     const message = refs.length
-      ? `This file is used by ${refs.length} propert${refs.length === 1 ? "y" : "ies"} (${escapeHtml(refs.join(", "))}). Deleting it will leave a broken image/link there. Delete anyway?`
+      ? `This file is used by ${refs.length} propert${refs.length === 1 ? "y" : "ies"} (${escapeHtml(refs.join(", "))}). Deleting it will remove it from ${refs.length === 1 ? "that property" : "those properties"} too. Delete anyway?`
       : "Delete this file permanently?";
     const ok = await AdminUI.confirmDialog(message, { confirmLabel: "Delete", danger: true });
     if (!ok) return;
-    await AdminDB.remove(id);
-    AdminUI.toast("File deleted.", "success");
+    try {
+      await AdminDB.remove(id);
+      AdminUI.toast("File deleted.", "success");
+    } catch (err) {
+      AdminUI.toast(err.message || "Could not delete this file.", "error");
+    }
     render();
   });
 

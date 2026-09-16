@@ -20,21 +20,43 @@
   const navToggle = document.querySelector(".nav-toggle");
   const drawer = document.querySelector(".mobile-drawer");
   const drawerClose = document.querySelector(".mobile-drawer-close");
+  // The drawer is a modal dialog (aria-modal="true"), so keyboard focus has to
+  // move into it on open, stay inside it while open, and return to the menu
+  // button on close.
+  function drawerFocusables() {
+    return Array.from(drawer?.querySelectorAll("a[href], button:not([disabled])") || [])
+      .filter((el) => el.offsetParent !== null && getComputedStyle(el).display !== "none");
+  }
   function openDrawer() {
     drawer?.classList.add("open");
     navToggle?.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
+    drawerClose?.focus({ preventScroll: true });
   }
   function closeDrawer() {
-    drawer?.classList.remove("open");
+    if (!drawer?.classList.contains("open")) return;
+    drawer.classList.remove("open");
     navToggle?.setAttribute("aria-expanded", "false");
     document.body.style.overflow = "";
+    if (drawer.contains(document.activeElement)) navToggle?.focus({ preventScroll: true });
   }
   navToggle?.addEventListener("click", openDrawer);
   drawerClose?.addEventListener("click", closeDrawer);
   drawer?.addEventListener("click", (e) => { if (e.target === drawer) closeDrawer(); });
   drawer?.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeDrawer));
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+  document.addEventListener("keydown", (e) => {
+    if (!drawer?.classList.contains("open")) return;
+    if (e.key === "Escape") { closeDrawer(); return; }
+    if (e.key !== "Tab") return;
+    const items = drawerFocusables();
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  // Resizing past the desktop breakpoint with the drawer open would leave the
+  // page scroll-locked behind a menu that no longer exists.
+  window.matchMedia("(min-width: 1101px)").addEventListener?.("change", (mq) => { if (mq.matches) closeDrawer(); });
 
   /* ---------- Active nav link on scroll (single-page sections) ---------- */
   const sections = document.querySelectorAll("main section[id]");
@@ -56,22 +78,42 @@
     sections.forEach((s) => observer.observe(s));
   }
 
-  /* ---------- Scroll reveal ---------- */
-  const revealTargets = document.querySelectorAll("[data-reveal]");
-  if (revealTargets.length) {
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("in-view");
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    revealTargets.forEach((el) => revealObserver.observe(el));
+  /* ---------- Scroll reveal ----------
+     Elements start at opacity 0 and fade in when scrolled into view. Property
+     cards are rendered AFTER this script runs (the grid is redrawn once the
+     backend's listings arrive), so registration has to be repeatable: an
+     element created later must still be picked up, or it stays invisible
+     forever — the failure mode recorded as D-24. `observeReveals()` is
+     therefore re-run on `rs:listings-updated`, and skips anything already
+     registered. */
+  const revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+
+  function observeReveals() {
+    document.querySelectorAll("[data-reveal]:not([data-reveal-observed])").forEach((el) => {
+      el.setAttribute("data-reveal-observed", "");
+      // Stagger siblings in a grid (cards, value tiles) by column position so a
+      // row settles left to right instead of popping in as one block. Capped
+      // at three steps so a long list never waits noticeably.
+      const siblings = el.parentElement ? Array.from(el.parentElement.children).filter((c) => c.hasAttribute("data-reveal")) : [];
+      if (siblings.length > 1) el.style.setProperty("--reveal-delay", (siblings.indexOf(el) % 3) * 80 + "ms");
+      revealObserver.observe(el);
+    });
   }
+
+  observeReveals();
+  document.addEventListener("rs:listings-updated", observeReveals);
+  // Fired by js/listings.js every time a grid re-renders (filters, sort, reset).
+  document.addEventListener("rs:content-rendered", observeReveals);
 
   /* ---------- Back to top ---------- */
   const backToTop = document.querySelector(".back-to-top");
@@ -214,43 +256,46 @@
   }
 
   /**
-   * ---------- Admin-panel overrides (same-browser only) ----------
-   * The admin panel (`admin/settings.html`) has no backend to publish to, so
-   * it writes business-info edits to this browser's own localStorage. If
-   * present, those values take priority over the js/config.js defaults below
-   * — this is what makes "edit in the admin panel, see it reflected on the
-   * site" true, but only within the one browser that made the edit. A
-   * visitor on a different device/browser still sees the js/config.js
-   * values. See plans/MASTER_PLAN.md D-27.
+   * ---------- Admin-panel business info ----------
+   * Business details edited in `admin/settings.html` are stored server-side
+   * and served to the public site by GET /api/v1/public/settings, so an edit
+   * made on one device is visible to every visitor — the cross-device gap
+   * D-27 documented is closed (see plans/MASTER_PLAN.md D-28). Values found
+   * there take priority over the js/config.js defaults.
+   *
+   * If the API is unreachable (offline, or the page was opened from disk)
+   * the js/config.js defaults stand, exactly as before.
    */
-  if (typeof REALTOR_CONFIG !== "undefined") {
-    try {
-      const raw = localStorage.getItem("rs-admin:settings");
-      if (raw) {
-        const adminSettings = JSON.parse(raw);
-        const biz = adminSettings.business || {};
-        ["siteName", "phone", "phoneSecondary", "email", "officeAddress"].forEach((key) => {
-          if (biz[key]) REALTOR_CONFIG[key] = biz[key];
-        });
-        if (biz.social) {
-          Object.keys(biz.social).forEach((platform) => {
-            if (biz.social[platform]) REALTOR_CONFIG.social[platform] = biz.social[platform];
-          });
-        }
-        if (biz.businessHours && biz.businessHours.status) {
-          REALTOR_CONFIG.businessHours = biz.businessHours;
-        }
-        if (adminSettings.currency) REALTOR_CONFIG.currency = adminSettings.currency;
-        if (adminSettings.currencySymbol) REALTOR_CONFIG.currencySymbol = adminSettings.currencySymbol;
-        REALTOR_CONFIG.businessHoursDisplay = formatBusinessHours(REALTOR_CONFIG.businessHours);
-      }
-    } catch {
-      // Malformed or absent admin data — silently keep the js/config.js defaults.
+  function applyBusinessSettings(settings) {
+    if (typeof REALTOR_CONFIG === "undefined" || !settings) return;
+    const biz = settings.business || {};
+    ["siteName", "phone", "phoneSecondary", "email", "officeAddress"].forEach((key) => {
+      if (biz[key]) REALTOR_CONFIG[key] = biz[key];
+    });
+    if (biz.social) {
+      Object.keys(biz.social).forEach((platform) => {
+        if (biz.social[platform]) REALTOR_CONFIG.social[platform] = biz.social[platform];
+      });
     }
+    if (biz.businessHours && biz.businessHours.status) {
+      REALTOR_CONFIG.businessHours = biz.businessHours;
+    }
+    if (settings.currency) REALTOR_CONFIG.currency = settings.currency;
+    if (settings.currencySymbol) REALTOR_CONFIG.currencySymbol = settings.currencySymbol;
+    REALTOR_CONFIG.businessHoursDisplay = formatBusinessHours(REALTOR_CONFIG.businessHours);
+  }
+
+  function loadBusinessSettings() {
+    if (typeof RS_API_BASE === "undefined" || !RS_API_BASE) return Promise.resolve();
+    return fetch(RS_API_BASE + "/public/settings", { credentials: "omit" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then(applyBusinessSettings)
+      .catch(() => undefined); // backend down — config.js defaults stand
   }
 
   /* ---------- Populate business info from config wherever data-config is present ---------- */
-  if (typeof REALTOR_CONFIG !== "undefined") {
+  function populateBusinessInfo() {
+    if (typeof REALTOR_CONFIG === "undefined") return;
     document.querySelectorAll("[data-config]").forEach((el) => {
       const path = el.getAttribute("data-config").split(".");
       let value = REALTOR_CONFIG;
@@ -291,6 +336,10 @@
     });
     document.title = document.title.replace("Realtor Shamraiz", REALTOR_CONFIG.siteName);
   }
+
+  // Populate once, after any server-side business settings have been applied,
+  // so the page never renders a config default and then visibly swaps it.
+  loadBusinessSettings().then(populateBusinessInfo);
 
   /* ---------- Image fallback ----------
      An image that fails to load must not leave a broken-image glyph and a

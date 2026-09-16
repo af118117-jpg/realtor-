@@ -6,6 +6,18 @@ dist/
 # Environment
 .env
 .env.*
+!.env.example
+!server/.env.example
+
+# Backend build output / uploaded media (server/)
+server/dist/
+# Local PGlite development/test database files (see server/README.md)
+server/.pglite-data*/
+server/.pglite-test-data*/
+server/storage/images/*
+server/storage/videos/*
+server/storage/documents/*
+!server/storage/**/.gitkeep
 
 # Foreign application cache that ended up inside this project tree.
 # Not project content — see plans/PHASE_00_AUDIT.md defect D-06.

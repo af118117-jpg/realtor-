@@ -86,6 +86,50 @@
   var formRef = document.querySelector("[data-p-form-ref]");
   if (formRef) formRef.value = title + " (" + String(item.id || "").toUpperCase() + ")";
 
+  // Label above the price. Only the purpose the record states is used; a
+  // listing with no stated purpose gets no label rather than a guessed one.
+  var PRICE_LABEL = { buy: "Asking price", rent: "Monthly rent", commercial: "Asking price" };
+  setText("[data-p-price-label]", item.price == null ? "Price" : (PRICE_LABEL[item.type] || "Price"));
+
+  // At-a-glance facts under the title (beds · baths · area). Same "nothing
+  // invented" rule: a missing field is simply left out.
+  var keyfacts = document.querySelector("[data-p-keyfacts]");
+  if (keyfacts) {
+    var facts = [];
+    if (item.beds) facts.push("<strong>" + esc(item.beds) + "</strong> " + (item.beds == 1 ? "Bed" : "Beds"));
+    if (item.baths) facts.push("<strong>" + esc(item.baths) + "</strong> " + (item.baths == 1 ? "Bath" : "Baths"));
+    if (areaLabel(item)) facts.push("<strong>" + esc(item.areaValue.toLocaleString()) + "</strong> " + esc(item.areaUnit));
+    keyfacts.innerHTML = facts.map(function (f) { return "<li>" + f + "</li>"; }).join("");
+    keyfacts.hidden = !facts.length;
+  }
+
+  // Agent card: restate which property the visitor is asking about, so the
+  // call/viewing buttons beside it are unambiguous.
+  setText("[data-p-agent-title]", title);
+  setText("[data-p-agent-price]", priceLabel(item));
+
+  // Mobile action bar (fixed to the bottom under 980px, hidden by CSS above).
+  // It steps aside while the agent card or the viewing form is on screen, so
+  // the same buttons never show twice and the bar never covers the form.
+  var ctaBar = document.querySelector("[data-p-cta-bar]");
+  var ctaTargets = [document.querySelector(".agent-card"), document.querySelector("[data-p-viewing-form]")].filter(Boolean);
+  if (ctaBar && ctaTargets.length && "IntersectionObserver" in window) {
+    document.body.classList.add("has-cta-bar");
+    var onScreen = new Set();
+    var ctaObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) onScreen.add(en.target); else onScreen.delete(en.target);
+      });
+      ctaBar.classList.toggle("is-visible", onScreen.size === 0);
+    }, { threshold: 0 });
+    ctaTargets.forEach(function (t) { ctaObserver.observe(t); });
+  }
+  document.querySelector("[data-p-cta-bar-viewing]")?.addEventListener("click", function (e) {
+    e.preventDefault();
+    document.querySelector("[data-p-viewing-form]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("v-name")?.focus({ preventScroll: true });
+  });
+
   /* ----------------------------------------------------------------- gallery */
   // gallery[] falls back to the single cover image. Alt text describes the real
   // subject rather than repeating the title verbatim on every frame.
@@ -96,18 +140,58 @@
   // render empty for exactly the records that DO have real uploaded photos.
   var gallery = document.querySelector("[data-p-gallery]");
 
+  // Desktop shows a mosaic of at most this many frames; the rest stay in the
+  // DOM (hidden by CSS) so the lightbox and the mobile swipe strip reach them.
+  var MOSAIC_MAX = 5;
+
   function renderGallery() {
     if (!gallery) return;
     var images = (item.gallery && item.gallery.length ? item.gallery : [item.image]).filter(Boolean);
     if (!images.length) { gallery.innerHTML = ""; return; }
+    var extra = images.length - MOSAIC_MAX;
     gallery.innerHTML = images.map(function (src, i) {
       var alt = title + " — " + (item.locality || "") + (images.length > 1 ? " (image " + (i + 1) + " of " + images.length + ")" : "");
+      // The last visible mosaic frame carries a "+N" overlay when photos are
+      // held back, so the visitor knows there is more to see.
+      var more = (extra > 0 && i === MOSAIC_MAX - 1)
+        ? '<span class="gallery-more" aria-hidden="true">+' + extra + " photos</span>" : "";
       return '<div class="gallery-item" data-full="' + esc(assetUrl(src)) + '" data-caption="' + esc(alt) + '">' +
-             '<img src="' + esc(assetUrl(src)) + '" alt="' + esc(alt) + '" loading="' + (i === 0 ? "eager" : "lazy") + '" width="600" height="600"></div>';
+             '<img src="' + esc(assetUrl(src)) + '" alt="' + esc(alt) + '" loading="' + (i === 0 ? "eager" : "lazy") + '"' +
+             (i === 0 ? ' fetchpriority="high"' : "") + ' decoding="async" width="1200" height="800">' + more + "</div>";
     }).join("");
-    // First frame spans two columns so the gallery reads as a hero + thumbnails
-    // rather than a flat contact sheet.
-    gallery.classList.toggle("gallery-grid-lead", images.length > 1);
+    // data-count drives the layout: 1 = single wide frame, 2 = pair,
+    // 3+ = lead frame + thumbnails (see .gallery-grid rules in css/style.css).
+    gallery.setAttribute("data-count", String(Math.min(images.length, MOSAIC_MAX)));
+    gallery.classList.toggle("gallery-grid-lead", images.length > 2);
+
+    var counter = document.querySelector("[data-p-gallery-count]");
+    if (counter) {
+      counter.textContent = images.length > 1 ? "View all " + images.length + " photos" : "View photo";
+      counter.hidden = false;
+    }
+    syncPosition();
+  }
+
+  // "View all photos" opens the lightbox on the first frame.
+  document.querySelector("[data-p-gallery-count]")?.addEventListener("click", function () {
+    gallery?.querySelector(".gallery-item")?.click();
+  });
+
+  // Mobile swipe strip: keep the "1 / N" position badge in sync with scroll.
+  // Hidden by CSS on desktop, where the mosaic shows the frames side by side.
+  function syncPosition() {
+    var positionEl = document.querySelector("[data-p-gallery-position]");
+    if (!gallery || !positionEl) return;
+    var items = gallery.querySelectorAll(".gallery-item");
+    if (items.length < 2) { positionEl.hidden = true; return; }
+    var step = items[1].offsetLeft - items[0].offsetLeft || 1;
+    var idx = Math.round(gallery.scrollLeft / step);
+    positionEl.textContent = Math.min(idx + 1, items.length) + " / " + items.length;
+    positionEl.hidden = false;
+  }
+  if (gallery) {
+    gallery.addEventListener("scroll", function () { window.requestAnimationFrame(syncPosition); }, { passive: true });
+    window.addEventListener("resize", syncPosition, { passive: true });
   }
   renderGallery();
 
