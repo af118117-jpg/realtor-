@@ -41,12 +41,12 @@
       </div>
       <div class="admin-field">
         <label for="setup-password">Choose a password</label>
-        <input type="password" id="setup-password" name="password" autocomplete="new-password" required minlength="8">
-        <span class="hint">At least 8 characters.</span>
+        <input type="password" id="setup-password" name="password" autocomplete="new-password" required minlength="12">
+        <span class="hint">At least 12 characters.</span>
       </div>
       <div class="admin-field">
         <label for="setup-password-confirm">Confirm password</label>
-        <input type="password" id="setup-password-confirm" name="password_confirm" autocomplete="new-password" required minlength="8">
+        <input type="password" id="setup-password-confirm" name="password_confirm" autocomplete="new-password" required minlength="12">
       </div>
       <button type="submit" class="btn-admin btn-admin-primary">Create Admin Account</button>
     </form>
@@ -58,16 +58,16 @@
 <script src="js/admin-config.js"></script>
 <script src="js/admin-auth.js"></script>
 <script>
-(function () {
+(async function () {
   "use strict";
 
   // Already logged in? Skip straight to the dashboard.
-  if (AdminAuth.hasCredentials() && AdminAuth.isAuthenticated()) {
+  if (await AdminAuth.isAuthenticated()) {
     window.location.replace("index.html");
     return;
   }
 
-  const isFirstRun = !AdminAuth.hasCredentials();
+  const isFirstRun = !(await AdminAuth.hasCredentials());
   const title = document.getElementById("auth-title");
   const note = document.getElementById("auth-note");
   const errorSlot = document.getElementById("auth-error-slot");
@@ -80,11 +80,11 @@
 
   if (isFirstRun) {
     title.textContent = "Set Up Admin Access";
-    note.textContent = "No admin account exists in this browser yet. Create one now — it is stored only on this device (see Settings → Security once you're in).";
+    note.textContent = "No admin account exists yet. Create one now — your password is hashed and stored on the server, and this can only be done once.";
     setupForm.hidden = false;
   } else {
     title.textContent = "Admin Log In";
-    note.textContent = "Access to this panel is a local, browser-only gate — not a real authentication backend. See Settings → Security after logging in.";
+    note.textContent = "Your credentials are verified by the server. You can change your password under Settings → Security after logging in.";
     loginForm.hidden = false;
   }
 
@@ -112,7 +112,12 @@
       showError("Passwords do not match.");
       return;
     }
-    await AdminAuth.setupCredentials(username, password);
+    try {
+      await AdminAuth.setupCredentials(username, password);
+    } catch (err) {
+      showError(err.message || "Could not create the admin account.");
+      return;
+    }
     AdminAuth.startSession(username.trim());
     window.location.href = "index.html";
   });

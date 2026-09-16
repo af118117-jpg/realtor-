@@ -86,16 +86,21 @@ must be removed or replaced before launch. See `QA_PLAN.md` → Content Integrit
 - Accessibility to WCAG 2.1 AA
 - Performance budget compliance
 
+**Now in scope (added 2026-09-13 — see D-28 in `plans/MASTER_PLAN.md`)**
+- Backend server and database: a Node.js/TypeScript REST API (Express +
+  Prisma + PostgreSQL) lives in `server/`. Properties, leads, media and
+  business settings are stored server-side and shared across every device,
+  superseding D-26's client-side-only panel and D-27's same-browser bridge.
+- Real server-verified authentication for `/admin`: bcrypt-hashed passwords,
+  httpOnly JWT + rotating refresh cookies, rate limiting, and a CSRF header
+  requirement on state-changing requests.
+- Public lead capture: website contact forms POST to the API (honeypot +
+  timing anti-spam) and appear in the admin Leads list.
+
 **Out of scope (this phase)**
-- Backend server or database (a client-side-only `/admin` panel was added
-  2026-09-10 as a separate, explicitly-requested phase — see D-26 in
-  `plans/MASTER_PLAN.md`; it has no server behind it yet, and today only
-  writes to this browser's own localStorage/IndexedDB)
-- Real user accounts / server-verified authentication (the `/admin` panel's
-  login is a local, client-side-only gate — see D-26)
 - Payment processing
 - MLS / portal live integration
-- CRM integration
+- Third-party CRM integration (leads are stored in this project's own database)
 - Genuine LLM-backed chat (see §7)
 
 ## 7. AI Concierge — honesty constraint

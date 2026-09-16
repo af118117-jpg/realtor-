@@ -11,7 +11,7 @@
 <style>html:not(.auth-ok) body{visibility:hidden}</style>
 <script src="js/admin-config.js"></script>
 <script src="js/admin-auth.js"></script>
-<script>if (AdminAuth.requireAuth()) document.documentElement.classList.add("auth-ok");</script>
+<script>AdminAuth.requireAuth().then(function (ok) { if (ok) document.documentElement.classList.add("auth-ok"); });</script>
 </head>
 <body class="admin-body">
 
@@ -24,7 +24,7 @@
         <button type="button" id="admin-menu-toggle" aria-label="Toggle menu">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
         </button>
-        <div><h1>Settings</h1><p class="admin-topbar-meta">Local to this browser — see the Security tab</p></div>
+        <div><h1>Settings</h1><p class="admin-topbar-meta">Saved on the server — visible on every device</p></div>
       </div>
       <div class="admin-topbar-actions"><span class="admin-user-chip" id="admin-current-user"></span></div>
     </header>
@@ -51,7 +51,7 @@
       <section class="admin-tab-panel" data-panel="business">
         <div class="admin-card">
           <div class="admin-card-head"><h2>Business Information</h2></div>
-          <p class="hint" style="margin-bottom:var(--space-3)">These fields are live for visitors on <strong>this same browser</strong> (synced via local storage) — they override the <code>js/config.js</code> defaults the instant you save. There is no real multi-device database yet, so a visitor on a different device/browser still sees the <code>js/config.js</code> values until a backend connects the two. See Settings → Security.</p>
+          <p class="hint" style="margin-bottom:var(--space-3)">These fields are live for <strong>every visitor, on every device</strong> the moment you save — they override the <code>js/config.js</code> defaults the site ships with. If the site can't reach the server, it falls back to those defaults rather than showing nothing.</p>
           <div class="admin-form-grid">
             <div class="admin-field span-2"><label for="s-biz-name">Business / Site Name</label><input type="text" id="s-biz-name"></div>
             <div class="admin-field"><label for="s-biz-phone">Primary Phone</label><input type="text" id="s-biz-phone"></div>
@@ -122,12 +122,12 @@
           <div class="admin-card-head"><h2>Security</h2></div>
           <div class="admin-prototype-note" style="margin-bottom:var(--space-4)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
-            <span>This login is a client-side-only gate (a password hash checked by JavaScript in your browser) — it keeps the panel out of casual reach on a shared computer, but it is <strong>not real authentication</strong>. Anyone with browser DevTools access to this device, or to this site's console if it's ever deployed as-is, can bypass it. Do not deploy this admin panel to a public host until a real backend performs login server-side.</span>
+            <span>Your password is verified by the server and stored only as a bcrypt hash — never in this browser. Sessions use httpOnly cookies that JavaScript cannot read, and expire automatically. Before this panel goes on a public host, make sure the site is served over HTTPS.</span>
           </div>
           <div class="admin-form-grid">
             <div class="admin-field"><label for="s-current-password">Current Password</label><input type="password" id="s-current-password" autocomplete="current-password"></div>
             <div></div>
-            <div class="admin-field"><label for="s-new-password">New Password</label><input type="password" id="s-new-password" autocomplete="new-password" minlength="8"></div>
+            <div class="admin-field"><label for="s-new-password">New Password</label><input type="password" id="s-new-password" autocomplete="new-password" minlength="12"></div>
             <div class="admin-field"><label for="s-new-password-confirm">Confirm New Password</label><input type="password" id="s-new-password-confirm" autocomplete="new-password" minlength="8"></div>
           </div>
           <button type="button" class="btn-admin btn-admin-primary" id="save-password" style="margin-top:var(--space-3)">Change Password</button>

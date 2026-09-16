@@ -262,6 +262,64 @@ of what it's for.
 | **D-26** | S2 | Found during Admin Panel QA (below): `properties-page.js` and `media-page.js` re-render their list/grid asynchronously (per-row cover-image lookups hit IndexedDB) but re-ran on every filter/tab-switch event with no guard — firing several filter changes in quick succession (or switching Media Library tabs quickly) could let an older, slower render finish *after* a newer one and silently overwrite it, leaving the visible table/grid out of sync with the filter controls and the "N of M" count | ✅ **Fixed** — both render functions now take a monotonically increasing token per call and discard their own output if a newer render started before they finished (same pattern applied to `property-editor-page.js`'s image/video re-renders as a precaution). Confirmed by firing 5 rapid filter changes back-to-back: table and count now always agree |
 | **D-27** | — | Decision, not a defect: client supplied real social links (Instagram, Facebook, TikTok, YouTube), email, office address, and business hours ("Always Open") on 2026-09-11 (`docs/CLIENT_COPY.md` Submission 2), and asked that these come from the admin panel "dynamically" rather than being hardcoded. There is still no backend (D-26's constraint stands) | ✅ **Applied** — `js/config.js` updated with the real values; TikTok/YouTube icons added to the footer (Instagram/Facebook/LinkedIn icons already existed — LinkedIn stays hidden, unsupplied); a new `businessHours` object (`{status: "always"\|"custom"\|"closed"}`) replaces the unused flat `openingHours` string, resolved via `formatBusinessHours()` so "always" can never fall through to a fabricated closing time — new "Hours" row added to the contact-info card. **The dynamic-from-admin-panel part:** `js/main.js` now reads `localStorage["rs-admin:settings"]` before populating the page and lets any admin-saved `business` fields (name, phone, phone2, email, address, social, businessHours, currency) override the `js/config.js` defaults; `admin/settings.html`'s Business Information tab gained Social Media and Business Hours sub-sections wired to the same store. This makes "edit in the admin panel → see it on the site" genuinely true, but **only within the one browser that made the edit** — there is no server, so a different device/browser still sees the `js/config.js` defaults. The Settings tab's own disclaimer text was rewritten to say this precisely, replacing the previous (now inaccurate for these fields) "editing here does not publish to the site" wording. Verified: admin edit → public site (same browser) reflects it for an overridden social URL and for all three `businessHours` states (Always Open / custom text / Currently Closed); clearing `localStorage` falls back cleanly to the `js/config.js` defaults |
 
+## Backend added 2026-09-13 (D-28)
+
+| ID | Sev | Description | Status |
+|---|---|---|---|
+| **D-28** | — | Decision, not a defect: the client approved building a real backend, superseding the "no backend, no database" scope D-26 and D-27 operated under. A Node.js/TypeScript REST API (Express + Prisma + PostgreSQL) now lives in `server/`, running as its own process on its own port. **The repo-root `server.js` static dev server was not touched.** | ✅ **Built and verified** |
+
+**What changed, and what it fixes:**
+
+- **Real authentication.** `admin/js/admin-auth.js`'s client-side hash check —
+  which its own header comment described as bypassable from DevTools — is
+  replaced by server-side verification: bcrypt-hashed passwords in PostgreSQL,
+  a 15-minute JWT access cookie plus a rotating 14-day refresh cookie, both
+  `httpOnly` so JavaScript cannot read them, and an `X-Admin-Request` header
+  required on every state-changing request as CSRF defense.
+- **Cross-device data.** `js/admin-bridge.js` read the admin's own
+  localStorage/IndexedDB, so a property was only ever visible in the browser
+  that created it (the limitation D-27 documented). It now reads
+  `GET /api/v1/public/properties`, and business settings come from
+  `GET /api/v1/public/settings` — an edit on one device is live for every
+  visitor. Uploaded photos are served from the API instead of blob URLs.
+- **Real lead capture.** `js/forms.js` posted nothing anywhere; enquiries
+  existed only if the visitor completed the WhatsApp handoff. It now also
+  POSTs to `/api/v1/public/leads` (honeypot + submission-timing anti-spam,
+  rate-limited) so the enquiry survives a closed tab and appears in the admin
+  Leads list. The WhatsApp handoff is unchanged.
+- **The seam held.** `AdminStore` / `AdminDB` / `AdminAuth` kept their function
+  names and shapes — exactly what their header comments said they existed for
+  — so the six admin page scripts needed `await`s and async bootstraps, not
+  rewrites. `admin/js/admin-ui.js` was not touched at all.
+- **Vocabulary translation** lives in `admin-store.js`: the UI still speaks
+  `draft`/`follow-up`/`sale`, the API speaks `DRAFT`/`FOLLOW_UP`/`SALE`.
+- **`Lead.status`** deliberately keeps the built 5-value enum
+  (`new · contacted · follow-up · interested · closed`) rather than
+  `docs/DATA_MODEL.md` §10's aspirational 6-state CRM pipeline, which no page
+  renders — least disruption to working UI. The `Lead` table gained nullable
+  `intent/budget/timeline/locality/consent/source` columns so real public
+  submissions and admin-logged calls share one table.
+
+**Defect found and fixed during verification:**
+
+| ID | Sev | Description | Status |
+|---|---|---|---|
+| **D-29** | S1 | **D-24 reintroduced through a new path.** Property cards are now rendered *after* the API responds, but `js/main.js`'s reveal-on-scroll `IntersectionObserver` only ever observed the elements present at page load — so every card stayed at `opacity: 0` permanently, invisible to every visitor. Same symptom as D-24, different cause (async data instead of script order). Caught in-browser, not by any test | ✅ **Fixed** — observer registration extracted into `observeReveals()`, which skips already-registered elements and re-runs on `rs:listings-updated`. Verified: cards now reach `opacity: 1` and `.in-view` when scrolled to |
+| **D-30** | S2 | The honeypot field was rejected by the Zod schema, so a tripped honeypot returned `400 {"error":"Validation failed","fieldErrors":{"company":["Spam check failed"]}}` — telling a bot exactly which field caught it, and contradicting the documented "silently discard" design | ✅ **Fixed** — the field validates freely and the spam verdict is applied in the service, which returns an ordinary `201`. Verified: honeypot and too-fast submissions both return 201 and store nothing |
+
+**Verified end-to-end** (real browser + real PostgreSQL, not mocks): log in →
+create a property → upload a real photo → publish → the property appears on the
+public `/properties` page with its photo on a client that never logged in →
+submit the public contact form → the lead appears in the admin Leads list →
+change its status → delete the media and see the reference warning → log out and
+be redirected from a protected page. Automated: 49 tests (unit + integration +
+e2e smoke) green against a real database.
+
+**Still open / not built:** production hosting for the API and database is
+`[CONTENT REQUIRED]`; media is on local disk (the upload/serve interface is
+isolated in one module so S3/R2 is a contained change); the concierge remains
+rule-based per `docs/AI_AGENT_SPEC.md` — no LLM backend was added.
+
 ## Admin Panel added 2026-09-10
 
 Client-side-only `/admin` area added per explicit request, alongside the existing public site — no existing page, route, asset, or design was changed to build it (only `.brand` hrefs already fixed under D-25 were touched in `index.html`; everything else here is new, under `admin/`).

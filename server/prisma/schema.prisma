@@ -1,0 +1,298 @@
+// Realtor Shamraiz — backend data model.
+//
+// Canonical domain model (see server/docs/DATABASE.md for the full field
+// reference, constraint list and the v1 API compatibility mapping).
+//
+// A few columns go beyond the minimum model on purpose, because the existing
+// admin panel already reads and writes them and working functionality must not
+// be removed: User.username (legacy login alias), Property.referenceCode /
+// floors / mapUrl / fromPublicSample, the Lead enquiry-detail columns, and
+// Settings. Each is marked "legacy" or explained inline.
+//
+// Constraints Prisma cannot express (CHECK constraints) live in the migration
+// SQL and are listed in DATABASE.md so they are not lost on a future rewrite.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+/// Ordered by privilege, highest first. See src/lib/roles.ts for the hierarchy.
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+enum ListingType {
+  SALE
+  RENT
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  SOLD
+  RENTED
+  ARCHIVED
+}
+
+enum PropertyMediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+/// Where a VIDEO item's stream comes from. Null for IMAGE/DOCUMENT rows.
+enum VideoProvider {
+  FILE
+  YOUTUBE
+  VIMEO
+}
+
+/// Kind of an uploaded file in the media library (Media table).
+enum MediaKind {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CLOSED
+  LOST
+}
+
+// ─── Identity ───────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  /// Always stored lower-case (enforced by a CHECK constraint), so the unique
+  /// index is effectively case-insensitive.
+  email        String   @unique
+  /// Legacy login alias: the existing admin panel signs in with a username.
+  /// Optional for new users; unique when present.
+  username     String?  @unique
+  /// bcrypt hash — plaintext passwords are never stored.
+  passwordHash String
+  /// Least privilege by default; setup/seed explicitly create a SUPER_ADMIN.
+  role         Role     @default(EDITOR)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  properties    Property[]     @relation("PropertyAgent")
+  uploads       Media[]        @relation("MediaUploader")
+  auditLogs     AuditLog[]
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id                  String    @id @default(cuid())
+  /// HMAC-SHA256 of the opaque token — the token itself is never stored.
+  tokenHash           String    @unique
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt           DateTime
+  revokedAt           DateTime?
+  replacedByTokenHash String?
+  createdAt           DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ─── Listings ───────────────────────────────────────────────────────────────
+
+model Property {
+  id           String         @id @default(cuid())
+  title        String
+  /// URL-safe, unique. Generated from the title when not supplied.
+  slug         String         @unique
+  description  String?
+  /// Free text drawn from the admin-configurable list in Settings
+  /// (Villa, House, Apartment, …), so it is not a database enum.
+  propertyType String?
+  listingType  ListingType    @default(SALE)
+  status       PropertyStatus @default(DRAFT)
+  price        Decimal?       @db.Decimal(14, 2)
+  /// ISO 4217 code, e.g. PKR.
+  currency     String         @default("PKR") @db.VarChar(3)
+  bedrooms     Int?
+  bathrooms    Int?
+  area         Decimal?       @db.Decimal(12, 2)
+  /// Kanal, Marla, sq ft, … — kept as text, local units vary.
+  areaUnit     String?
+  city         String?
+  /// Neighbourhood / society, e.g. "DHA Islamabad".
+  location     String?
+  address      String?
+  latitude     Decimal?       @db.Decimal(9, 6)
+  longitude    Decimal?       @db.Decimal(9, 6)
+  amenities    String[]       @default([])
+  /// Number of parking spaces.
+  parking      Int?
+  /// Null = not specified.
+  furnished    Boolean?
+  yearBuilt    Int?
+  featured     Boolean        @default(false)
+  verified     Boolean        @default(false)
+  agentId      String?
+  agent        User?          @relation("PropertyAgent", fields: [agentId], references: [id], onDelete: SetNull)
+
+  // Legacy columns still used by the existing admin panel / public site.
+  /// Human reference such as "PROP-1" (exposed as `propertyId` in API v1).
+  referenceCode    String?  @unique
+  floors           Int?
+  mapUrl           String?
+  /// True for the demo rows seeded from js/listings-data.js.
+  fromPublicSample Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  media PropertyMedia[]
+  leads Lead[]
+
+  // Public listing query: WHERE status = 'ACTIVE' ORDER BY featured, createdAt.
+  @@index([status, featured, createdAt])
+  @@index([status, listingType])
+  @@index([propertyType])
+  @@index([city])
+  @@index([price])
+  @@index([agentId])
+}
+
+/// One ordered gallery/video/document item attached to a property.
+/// Exactly one of `url` (external or static asset) or `mediaId` (uploaded
+/// file) must be set — enforced by a CHECK constraint in the migration.
+model PropertyMedia {
+  id         String            @id @default(cuid())
+  propertyId String
+  property   Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  type       PropertyMediaType
+  url        String?
+  mediaId    String?
+  /// Removing the uploaded file removes the gallery slot that showed it.
+  media      Media?            @relation("PropertyMediaFile", fields: [mediaId], references: [id], onDelete: Cascade)
+  altText    String?
+  /// The cover image. The service keeps at most one per property and type.
+  isFeatured Boolean           @default(false)
+  sortOrder  Int               @default(0)
+  createdAt  DateTime          @default(now())
+
+  // Type-specific detail (null where not applicable).
+  provider         VideoProvider?
+  /// YouTube/Vimeo video id.
+  externalId       String?
+  name             String?
+  thumbnailUrl     String?
+  thumbnailMediaId String?
+  thumbnailMedia   Media?         @relation("PropertyMediaThumbnail", fields: [thumbnailMediaId], references: [id], onDelete: SetNull)
+  docType          String?
+  sizeBytes        Int?
+  /// Documents are always private; images and videos are public.
+  isPrivate        Boolean        @default(false)
+
+  @@index([propertyId, type, sortOrder])
+  @@index([mediaId])
+  @@index([thumbnailMediaId])
+}
+
+/// An uploaded file in the media library. Bytes live in storage (local disk
+/// today), addressed by `storagePath`; this row is the metadata.
+model Media {
+  id           String    @id @default(cuid())
+  kind         MediaKind
+  name         String
+  mimeType     String
+  size         Int
+  storagePath  String    @unique
+  isPrivate    Boolean   @default(false)
+  uploadedById String?
+  uploadedBy   User?     @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+
+  propertyMedia PropertyMedia[] @relation("PropertyMediaFile")
+  thumbnailFor  PropertyMedia[] @relation("PropertyMediaThumbnail")
+
+  @@index([kind, createdAt])
+  @@index([uploadedById])
+}
+
+// ─── CRM ────────────────────────────────────────────────────────────────────
+
+model Lead {
+  id         String     @id @default(cuid())
+  name       String
+  email      String?
+  phone      String
+  message    String?
+  propertyId String?
+  /// A lead outlives the listing it came from.
+  property   Property?  @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  /// "admin" (logged by staff) or "public-form" (website enquiry).
+  source     String     @default("admin")
+  status     LeadStatus @default(NEW)
+
+  // Enquiry detail captured by the public form, and staff notes.
+  notes    String?
+  intent   String?
+  budget   String?
+  timeline String?
+  locality String?
+  consent  Boolean?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@index([propertyId])
+  @@index([email])
+  @@index([phone])
+}
+
+// ─── Operations ─────────────────────────────────────────────────────────────
+
+/// Append-only record of important admin actions. Never stores secrets
+/// (passwords, tokens) — see src/modules/audit/audit.service.ts.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  /// Snapshot of the actor's email, so the trail survives user deletion.
+  actorEmail String?
+  /// Dotted verb, e.g. "property.update", "auth.login_failed".
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+/// Single-row settings document (id fixed at 1, CHECK-enforced). One JSON
+/// column keeps the request/response shape identical to what the admin
+/// settings page already sends.
+model Settings {
+  id        Int      @id @default(1)
+  data      Json
+  updatedAt DateTime @updatedAt
+}

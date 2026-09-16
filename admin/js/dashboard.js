@@ -1,18 +1,13 @@
 (function () {
   "use strict";
 
-  AdminStore.seedIfEmpty();
   AdminUI.mountPage("dashboard");
 
-  async function coverThumbUrl(p) {
+  function coverThumbUrl(p) {
     const cover = (p.images || []).find((i) => i.isCover) || (p.images || [])[0];
     if (!cover) return "../assets/images/agent/agent-placeholder.svg";
     if (cover.externalSrc) return `../${cover.externalSrc}`;
-    if (cover.mediaId) {
-      const rec = await AdminDB.get(cover.mediaId);
-      const url = AdminDB.objectUrlFor(rec);
-      if (url) return url;
-    }
+    if (cover.mediaId) return AdminDB.objectUrlFor(cover.mediaId) || "../assets/images/agent/agent-placeholder.svg";
     return "../assets/images/agent/agent-placeholder.svg";
   }
 
@@ -21,8 +16,7 @@
   }
 
   async function render() {
-    const properties = AdminStore.listProperties();
-    const leads = AdminStore.listLeads();
+    const [properties, leads] = await Promise.all([AdminStore.listProperties(), AdminStore.listLeads()]);
 
     const counts = { total: properties.length, active: 0, draft: 0, sold: 0, rented: 0 };
     properties.forEach((p) => { if (counts[p.status] !== undefined) counts[p.status]++; });
@@ -44,7 +38,7 @@
     if (!recentProps.length) {
       recentPropsEl.innerHTML = `<div class="admin-empty">No properties yet. <a href="property-editor.html">Add your first property</a>.</div>`;
     } else {
-      const thumbs = await Promise.all(recentProps.map(coverThumbUrl));
+      const thumbs = recentProps.map(coverThumbUrl);
       recentPropsEl.innerHTML = `<div class="admin-table-wrap"><table class="admin-table"><tbody>${
         recentProps.map((p, i) => `
           <tr>
@@ -60,7 +54,7 @@
     const recentLeads = [...leads].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
     const recentLeadsEl = document.getElementById("recent-leads");
     if (!recentLeads.length) {
-      recentLeadsEl.innerHTML = `<div class="admin-empty">No inquiries yet. Submissions from the website will appear here once a backend is connected — see <a href="leads.html">Leads</a>.</div>`;
+      recentLeadsEl.innerHTML = `<div class="admin-empty">No inquiries yet. Submissions from the website's contact forms land here automatically — see <a href="leads.html">Leads</a>.</div>`;
     } else {
       recentLeadsEl.innerHTML = `<div class="admin-table-wrap"><table class="admin-table"><tbody>${
         recentLeads.map((l) => `

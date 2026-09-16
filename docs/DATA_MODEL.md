@@ -166,10 +166,16 @@ Frontmatter schema (Zod-validated at build time):
 | `draft` | boolean | ✅ |
 | `reviewedAt` | date | optional | Master requirements §44 (freshness). Set when a fact is re-verified without new content being written — distinct from `updatedAt`, which implies the text itself changed |
 
-## 7. `LeadSubmission` — transient, not persisted
+## 7. `LeadSubmission` — transient client-side, persisted server-side
 
-Never stored client-side. Assembled, sent to the form endpoint or encoded into a
-WhatsApp deep link, then discarded.
+Never stored *client-side*. Assembled, POSTed to the backend
+(`/api/v1/public/leads`, added 2026-09-13 — see `plans/MASTER_PLAN.md` D-28)
+and/or encoded into a WhatsApp deep link, then discarded by the browser.
+
+The server stores it as a `Lead` row (§10) with `source: "public-form"`, so an
+enquiry now survives the visitor closing the tab. Two fields exist only for
+anti-spam and are never persisted: a `company` honeypot and a `renderedAt`
+timestamp, both checked server-side.
 
 | Field | Type | Required |
 |---|---|---|
@@ -239,8 +245,8 @@ the matching constraint on how the assistant discusses investment questions.
 ## 10. `Lead` — CRM-side record (master requirements §25–26)
 
 **Not part of the frontend data layer.** `LeadSubmission` (§7) is what the
-browser assembles and sends; `Lead` is what the receiving system (a CRM, a
-spreadsheet, TBD — see `TECH_ARCHITECTURE.md`) stores once a submission lands.
+browser assembles and sends; `Lead` is what the backend stores once a
+submission lands (see `TECH_ARCHITECTURE.md` §9).
 Documented here so the two aren't conflated: the frontend never reads, lists,
 or displays `Lead` records — that would mean shipping other visitors' contact
 data to the browser, which the sensitive-data rule in §2 already forbids.
@@ -263,16 +269,27 @@ data to the browser, which the sensitive-data rule in §2 already forbids.
 | `created_at` | ISO datetime | |
 | `status` | status enum (below) | |
 
-**`status` — closed enum, per master requirements §25:**
+**`status` — as implemented (decided 2026-09-13, see `plans/MASTER_PLAN.md` D-28):**
 
-`NEW` → `QUALIFIED` → `CONTACTED` → `VIEWING_BOOKED` → `NEGOTIATION` →
-`CONVERTED`, with `LOST` reachable from any state.
+`NEW · CONTACTED · FOLLOW_UP · INTERESTED · CLOSED` — the five values the built
+admin UI (`admin/js/leads-page.js`, `ADMIN_CONFIG.leadStatuses`) has always
+rendered, now enforced as a database enum.
 
-This is a pipeline, not a checklist — a lead can skip stages (e.g. `NEW` →
-`LOST`) but never moves backward except through explicit correction. The
-website has no UI for this pipeline; it exists so that whatever system the
-client chooses to manage leads in has a defined shape to receive `LeadSubmission`
-payloads into, rather than each integration inventing its own.
+**Why not the six-stage pipeline below:** master requirements §25 specified
+`NEW → QUALIFIED → CONTACTED → VIEWING_BOOKED → NEGOTIATION → CONVERTED` with
+`LOST` from any state. That pipeline was documented but never built — no page
+renders it. Adopting it would have meant rewriting a working screen to match a
+doc, so the simpler implemented set was kept and this entry corrected to match
+reality. Moving to the richer pipeline later is a migration plus a UI change,
+not a blocker; the shape above is what the system actually stores today.
+
+**Where it lives:** the `Lead` table in this project's own PostgreSQL database
+(`server/prisma/schema.prisma`), not a third-party CRM. One table serves both
+real public submissions (`source: "public-form"`, carrying the optional
+`intent`/`budget`/`timeline`/`locality`/`consent` qualifiers) and inquiries the
+admin logs manually from a phone call (`source: "admin"`). The public site
+still never reads or displays `Lead` records — that endpoint requires
+authentication.
 
 ## 11. AI response information categories (master requirements §30)
 

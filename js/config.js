@@ -127,6 +127,34 @@ var RS_IS_FILE = (function () {
 })();
 
 /**
+ * Backend API base.
+ * In local development the static site is served on :5273 (server.js) while
+ * the API runs as its own process on :4000. In production the API is expected
+ * to be reverse-proxied under the same origin at /api/v1. Opened straight from
+ * disk (file://) there is no API to talk to, and callers fall back to the
+ * static data in js/listings-data.js.
+ */
+var RS_API_BASE = (function () {
+  try {
+    if (RS_IS_FILE) return "";
+    var host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return "http://localhost:4000/api/v1";
+    return "/api/v1";
+  } catch (e) {
+    return "";
+  }
+})();
+
+/** Turns an API-relative path ("/api/v1/media/xyz/file") into a fetchable URL. */
+function apiUrl(path) {
+  var p = String(path || "");
+  if (!p) return p;
+  if (/^([a-z]+:)?\/\//i.test(p)) return p;
+  if (p.indexOf("/api/v1") === 0) return RS_API_BASE + p.slice("/api/v1".length);
+  return p;
+}
+
+/**
  * Resolves an asset path (image, video, icon) against the real site root.
  * Absolute URLs, protocol-relative URLs, data: and blob: URLs pass through
  * untouched so admin-entered external URLs and uploaded object URLs keep
