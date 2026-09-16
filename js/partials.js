@@ -40,6 +40,7 @@
    * not yet built — remove it the moment the page exists, never before.
    */
   var NAV = [
+    { href: "/", label: "Home" },
     { href: "/properties", label: "Properties" },
     { href: "/buy", label: "Buy" },
     { href: "/sell", label: "Sell" },
@@ -111,7 +112,7 @@
       '  <div class="container nav-inner">',
       '    <a href="' + routeUrl("/") + '" data-route-resolved class="brand" aria-label="Realtor Shamraiz — home">',
       '      <span class="brand-mark" aria-hidden="true">RS</span>',
-      '      <span class="brand-name">Realtor Shamraiz</span>',
+      '      <span class="brand-text"><span class="brand-name">Realtor Shamraiz</span><span class="brand-sub" aria-hidden="true">Luxury Real Estate</span></span>',
       "    </a>",
       '    <nav class="nav-links" aria-label="Primary">',
       "      " + navLinks(NAV),
@@ -137,7 +138,7 @@
       '<div class="mobile-drawer" id="mobile-drawer" role="dialog" aria-modal="true" aria-label="Site navigation">',
       '  <div class="mobile-drawer-panel">',
       '    <div class="mobile-drawer-head">',
-      '      <span class="brand-mark" aria-hidden="true">RS</span>',
+      '      <span class="brand" aria-hidden="true"><span class="brand-mark">RS</span><span class="brand-text"><span class="brand-name">Realtor Shamraiz</span><span class="brand-sub">Luxury Real Estate</span></span></span>',
       '      <button class="mobile-drawer-close" aria-label="Close menu">' + ICON.close + "</button>",
       "    </div>",
       '    <nav aria-label="Mobile primary">',

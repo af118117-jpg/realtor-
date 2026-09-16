@@ -40,12 +40,41 @@
     return `${formatPKR(item.price)}${suffix}`;
   }
 
+  const cameraIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+  const arrowIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+
+  // Listing text can come from the admin panel, so it is escaped before it is
+  // placed into markup.
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  // Purpose label shown on the photo. A non-available status (sold, rented…)
+  // takes precedence, because it is the more important fact about the listing.
+  const PURPOSE = { buy: "For sale", rent: "For rent", commercial: "Commercial" };
+  const STATUS = { sold: "Sold", rented: "Rented", "under-offer": "Under offer", reserved: "Reserved" };
+  function purposeLabel(item) {
+    if (item.status && STATUS[item.status]) return { text: STATUS[item.status], closed: true };
+    return PURPOSE[item.type] ? { text: PURPOSE[item.type], closed: false } : null;
+  }
+
+  /**
+   * The one property card used everywhere (home featured grid, /buy, /rent,
+   * /properties results, "similar properties"). Whole card is clickable via the
+   * title link's stretched ::after; the favourite and enquiry controls sit
+   * above that layer so they keep their own actions.
+   */
   function cardTemplate(item) {
     const isSaved = getSaved().includes(item.id);
-    const metaBits = [];
-    if (item.beds) metaBits.push(`<span>${bedIcon}${item.beds} Beds</span>`);
-    if (item.baths) metaBits.push(`<span>${bathIcon}${item.baths} Baths</span>`);
-    if (areaLabel(item)) metaBits.push(`<span>${areaIcon}${areaLabel(item)}</span>`);
+    const detailHref = `/properties/detail?id=${encodeURIComponent(item.id)}`;
+    const title = esc(item.title);
+    const locality = esc(item.locality);
+
+    const specs = [];
+    if (item.beds) specs.push(`<li>${bedIcon}<span><strong>${esc(item.beds)}</strong> ${item.beds == 1 ? "Bed" : "Beds"}</span></li>`);
+    if (item.baths) specs.push(`<li>${bathIcon}<span><strong>${esc(item.baths)}</strong> ${item.baths == 1 ? "Bath" : "Baths"}</span></li>`);
+    if (areaLabel(item)) specs.push(`<li>${areaIcon}<span><strong>${esc(item.areaValue.toLocaleString())}</strong> ${esc(item.areaUnit)}</span></li>`);
 
     // WhatsApp CTA is omitted entirely while the number is [CONTENT REQUIRED],
     // rather than rendering a link that goes nowhere.
@@ -53,23 +82,33 @@
       `Hello, I'm interested in "${item.title}" (${item.locality}). Could you share more details?`
     );
     const enquireCta = waHref
-      ? `<a class="btn btn-primary btn-sm" href="${waHref}" target="_blank" rel="noopener noreferrer">Enquire</a>`
-      : `<a class="btn btn-primary btn-sm" href="${telHref(REALTOR_CONFIG.phone)}">Call to Enquire</a>`;
+      ? `<a class="btn btn-primary btn-sm" href="${esc(waHref)}" target="_blank" rel="noopener noreferrer">Enquire</a>`
+      : `<a class="btn btn-primary btn-sm" href="${esc(telHref(REALTOR_CONFIG.phone))}">Call to Enquire</a>`;
+
+    const purpose = purposeLabel(item);
+    const photoCount = (item.gallery || []).length;
 
     return `
-    <article class="listing-card" data-reveal data-id="${item.id}">
+    <article class="listing-card${item.featured ? " is-featured" : ""}" data-reveal data-id="${esc(item.id)}">
       <div class="listing-media">
-        <img src="${assetUrl(item.image)}" alt="${item.title} — ${item.locality}" loading="lazy" width="800" height="600">
-        <span class="listing-tag ${item.demo ? "demo" : ""}">${item.demo ? "Sample listing · " : ""}${item.category}</span>
-        <button class="listing-fav ${isSaved ? "is-saved" : ""}" aria-pressed="${isSaved}" aria-label="Save ${item.title} to favorites" data-fav="${item.id}">${heartIcon}</button>
+        <img src="${esc(assetUrl(item.image))}" alt="${title} — ${locality}" loading="lazy" decoding="async" width="800" height="600">
+        <div class="listing-badges">
+          ${item.featured ? `<span class="listing-tag listing-tag--featured">Featured</span>` : ""}
+          <span class="listing-tag ${item.demo ? "demo" : ""}">${item.demo ? "Sample listing · " : ""}${esc(item.category)}</span>
+        </div>
+        <button type="button" class="listing-fav ${isSaved ? "is-saved" : ""}" aria-pressed="${isSaved}" aria-label="Save ${title} to favourites" data-fav="${esc(item.id)}">${heartIcon}</button>
+        <div class="listing-media-foot">
+          ${purpose ? `<span class="listing-purpose${purpose.closed ? " is-closed" : ""}">${purpose.text}</span>` : "<span></span>"}
+          ${photoCount > 1 ? `<span class="listing-photos">${cameraIcon}${photoCount}<span class="sr-only"> photos</span></span>` : ""}
+        </div>
       </div>
       <div class="listing-body">
-        <div class="listing-price">${priceLabel(item)}</div>
-        <h3 class="listing-title">${item.title}</h3>
-        <div class="listing-loc">${pinIcon}<span>${item.locality}</span></div>
-        <div class="listing-meta">${metaBits.join("")}</div>
+        <p class="listing-price">${priceLabel(item)}</p>
+        <h3 class="listing-title"><a href="${detailHref}">${title}</a></h3>
+        <p class="listing-loc">${pinIcon}<span>${locality}</span></p>
+        ${specs.length ? `<ul class="listing-specs">${specs.join("")}</ul>` : ""}
         <div class="listing-cta">
-          <a class="btn btn-outline btn-sm" href="/properties/detail?id=${item.id}">View Details</a>
+          <a class="listing-link" href="${detailHref}" tabindex="-1" aria-hidden="true">View details ${arrowIcon}</a>
           ${enquireCta}
         </div>
       </div>
@@ -84,26 +123,41 @@
         const nowSaved = toggleSaved(id);
         btn.classList.toggle("is-saved", nowSaved);
         btn.setAttribute("aria-pressed", String(nowSaved));
-        window.showToast?.(nowSaved ? "Saved to your favorites" : "Removed from favorites");
+        window.showToast?.(nowSaved ? "Saved to your favourites" : "Removed from favourites");
+        // Brief pop on save only — confirmation that the tap registered.
+        if (nowSaved) { btn.classList.remove("just-saved"); void btn.offsetWidth; btn.classList.add("just-saved"); }
       });
     });
   }
 
-  function emptyStateTemplate() {
+  function emptyStateTemplate(canReset) {
+    // On the filterable results page the most useful next step is clearing the
+    // filters; everywhere else it is talking to a person.
+    const action = canReset
+      ? `<button type="button" class="btn btn-outline" data-empty-reset>Clear all filters</button>`
+      : `<a class="btn btn-outline" href="/contact">Tell us what you're looking for</a>`;
     return `
-    <div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      <p>No properties match these filters right now.<br>Try a different category, or let us know what you're looking for.</p>
+    <div class="empty-state" role="status">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <h3>No properties match</h3>
+      <p>Nothing fits this search right now. Try widening the budget or area, or ask about exclusive options that are not listed publicly.</p>
+      ${action}
     </div>`;
   }
 
   function render(grid, items, limit) {
     const list = typeof limit === "number" ? items.slice(0, limit) : items;
-    grid.innerHTML = list.length ? list.map(cardTemplate).join("") : emptyStateTemplate();
+    const canReset = !!document.querySelector("[data-filter-reset]") && grid.matches("[data-listing-grid='all']");
+    grid.innerHTML = list.length ? list.map(cardTemplate).join("") : emptyStateTemplate(canReset);
+    grid.querySelector("[data-empty-reset]")?.addEventListener("click", () => document.querySelector("[data-filter-reset]")?.click());
     // Cards are injected after the initial document pass, so their "View
     // Details" links need resolving too.
     if (typeof applyRouteUrls === "function") applyRouteUrls(grid);
     bindFavButtons(grid);
+    // New cards carry data-reveal. Without re-registering them with the reveal
+    // observer (js/main.js) they stay at opacity 0 — which is what happened on
+    // /properties after every filter change, sort or reset.
+    document.dispatchEvent(new CustomEvent("rs:content-rendered"));
   }
 
   /* ---------- Featured grid (index.html) ---------- */
@@ -348,6 +402,11 @@
     const q = new URLSearchParams();
     if (data.get("type")) q.set("type", data.get("type"));
     if (data.get("q")) q.set("q", data.get("q"));
+    if (data.get("category")) q.set("category", data.get("category"));
+    // Budget options carry "min-max" in rupees; either side may be empty.
+    const [bMin, bMax] = String(data.get("budget") || "").split("-");
+    if (Number(bMin)) q.set("priceMin", bMin);
+    if (Number(bMax)) q.set("priceMax", bMax);
     window.location.href = `/properties${q.toString() ? "?" + q.toString() : ""}`;
   });
 

@@ -99,10 +99,12 @@
       </div>
 
       <form class="search-widget" data-home-search aria-label="Property search">
-        <div class="search-tabs" role="tablist">
-          <button type="button" class="search-tab active" data-tab="buy">Buy</button>
-          <button type="button" class="search-tab" data-tab="rent">Rent</button>
-          <button type="button" class="search-tab" data-tab="commercial">Commercial</button>
+        <!-- Toggle buttons (aria-pressed), not an ARIA tablist: there are no tab
+             panels, only a purpose value that the one form submits. -->
+        <div class="search-tabs" role="group" aria-label="Looking to">
+          <button type="button" class="search-tab active" data-tab="buy" aria-pressed="true">Buy</button>
+          <button type="button" class="search-tab" data-tab="rent" aria-pressed="false">Rent</button>
+          <button type="button" class="search-tab" data-tab="commercial" aria-pressed="false">Commercial</button>
         </div>
         <input type="hidden" name="type" value="buy">
         <div class="search-fields">
@@ -116,7 +118,10 @@
           </div>
           <div class="search-field">
             <label for="s-type">Property type</label>
-            <select id="s-type">
+            <!-- name/value added 2026-09-14: these two selects previously had no
+                 name, so whatever the visitor picked was dropped on submit.
+                 Values map onto the /properties filter keys (js/listings.js). -->
+            <select id="s-type" name="category">
               <option value="">Any type</option>
               <option>House</option>
               <option>Villa</option>
@@ -127,11 +132,11 @@
           </div>
           <div class="search-field">
             <label for="s-budget">Budget</label>
-            <select id="s-budget">
+            <select id="s-budget" name="budget">
               <option value="">Any budget</option>
-              <option>Under ₨3 Crore</option>
-              <option>₨3–7 Crore</option>
-              <option>Above ₨7 Crore</option>
+              <option value="0-30000000">Under ₨3 Crore</option>
+              <option value="30000000-70000000">₨3–7 Crore</option>
+              <option value="70000000-">Above ₨7 Crore</option>
             </select>
           </div>
           <div class="search-field search-submit">
@@ -163,8 +168,15 @@
   <!-- ============ ABOUT ============ -->
   <section id="about">
     <div class="container split">
-      <div class="split-media" data-reveal>
-        <img src="assets/images/agent/agent-placeholder.svg" alt="Portrait of Realtor Shamraiz" loading="lazy" width="600" height="700">
+      <div class="split-media split-media--video" data-reveal>
+        <!-- Client-supplied walkthrough video (portrait, ~50s, ~19 MB). Plays only when the
+             visitor presses play: no autoplay, and only metadata is fetched up front. The
+             #t=0.5 fragment makes browsers (iOS Safari included) paint a first frame
+             without a separate poster image. -->
+        <video controls playsinline preload="metadata" width="478" height="850"
+               aria-label="Video tour with Realtor Shamraiz: 7 marla brand-new house for sale">
+          <source src="assets/video/about-video.mp4#t=0.5" type="video/mp4">
+        </video>
         <!-- Was two invented metrics (years in business, clients served). Master rule 04
              forbids both. Replaced with the coverage fact, which is verified. -->
         <div class="split-media-badge">
@@ -403,7 +415,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
               Send Enquiry
             </button>
-            <p class="form-note">Nothing you type here is stored on this site. Submitting opens your own messaging app; if that channel is not connected yet you will be given both phone numbers instead.</p>
+            <p class="form-note">Your details are sent to Realtor Shamraiz so they can reply to this enquiry. Fields marked <span class="required" aria-hidden="true">*</span> are required.</p>
           </form>
         </div>
         <div style="display:grid;gap:var(--space-3)">
@@ -482,8 +494,9 @@
   // Search widget tabs -> set hidden type field
   document.querySelectorAll(".search-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".search-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".search-tab").forEach((t) => { t.classList.remove("active"); t.setAttribute("aria-pressed", "false"); });
       tab.classList.add("active");
+      tab.setAttribute("aria-pressed", "true");
       document.querySelector('[data-home-search] input[name="type"]').value = tab.dataset.tab;
     });
   });
